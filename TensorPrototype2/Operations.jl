@@ -3,11 +3,15 @@ include("Tensors.jl")
 
 abstract type Operation <: Node end
 
-# Should I instead have a single operation type with the operation type defined?
 struct Add <: Operation
+    shape
     children::Tuple{Vararg{Node}}
 end
 
-function +(x::AbstractTensor, y::AbstractTensor)
-    return Add((x, y))
+function +(x::Node, y::Node)
+    if x.shape != y.shape
+        # TODO: Better error message
+        error("Shapes don't match")
+    end
+    return Add(x.shape, (x, y))
 end
