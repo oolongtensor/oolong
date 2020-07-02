@@ -7,11 +7,12 @@ struct ScalarVariable <: AbstractTensor end
 Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
 
 struct ConcreteTensor <: AbstractTensor
-    shape
-    indices
+    # shape
+    # indices
+
     # Some kind of a collection of Scalars
     value
-    children::Tuple{Vararg{Node}}
+    children
 end
 
-ConcreteTensor(x::Scalar, children::Tuple{Vararg{Node}}) = ConcreteTensor(value=x, children=children)
+ConcreteTensor(x::Scalar) = ConcreteTensor([x], ())
