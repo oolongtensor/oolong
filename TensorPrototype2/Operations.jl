@@ -8,6 +8,6 @@ struct Add <: Operation
     children::Tuple{Vararg{Node}}
 end
 
-function +(x::Scalar, y::Scalar)
-    return Add((ConcreteTensor(x), ConcreteTensor(y)))
+function +(x::AbstractTensor, y::AbstractTensor)
+    return Add((x, y))
 end
