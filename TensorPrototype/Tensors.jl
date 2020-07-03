@@ -17,3 +17,6 @@ struct ConcreteTensor <: AbstractTensor
 end
 
 ConcreteTensor(x::Vararg{Scalar}) = ConcreteTensor(x, (length(x),), ())
+
+# TODO Check these are scalar
+ConcreteTensor(x::AbstractArray) = ConcreteTensor(x, size(x), ())
