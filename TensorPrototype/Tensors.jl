@@ -15,4 +15,4 @@ struct ConcreteTensor <: AbstractTensor
     children
 end
 
-ConcreteTensor(x::Scalar) = ConcreteTensor([x], (1), ())
+ConcreteTensor(x::Vararg{Scalar}) = ConcreteTensor(x, length(x), ())
