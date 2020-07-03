@@ -2,6 +2,7 @@ include("Node.jl")
 
 abstract type AbstractTensor <: Node end
 
+# TODO Is this inheritance a good idea?
 struct ScalarVariable <: AbstractTensor end
 
 Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
