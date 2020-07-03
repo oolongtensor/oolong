@@ -8,10 +8,14 @@ struct Add <: Operation
     children::Tuple{Vararg{Node}}
 end
 
-function +(x::Node, y::Node)
-    if x.shape != y.shape
-        # TODO: Better error message
-        error("Shapes don't match")
+function +(nodes::Vararg{Node})
+    if length(nodes) > 1
+        for node in nodes[2:length(nodes)]
+            if node.shape != nodes[1].shape
+                # TODO: Better error message
+                error("Shapes don't match")
+            end
+        end
     end
-    return Add(x.shape, (x, y))
+    return Add(nodes[1].shape, nodes)
 end
