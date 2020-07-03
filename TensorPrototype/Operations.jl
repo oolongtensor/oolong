@@ -1,5 +1,8 @@
 include("Node.jl")
 include("Tensors.jl")
+include("Indices.jl")
+
+import Base
 
 abstract type Operation <: Node end
 
@@ -18,4 +21,13 @@ function +(nodes::Vararg{Node})
         end
     end
     return Add(nodes[1].shape, nodes)
+end
+
+struct IndexOperation <: Operation
+    shape
+    children::Tuple{Vararg{Node}}
+end
+
+function Base.getindex(AbstractTensor, ConcreteIndex)
+    println("Cool")
 end
