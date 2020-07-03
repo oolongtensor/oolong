@@ -25,9 +25,9 @@ end
 
 struct IndexOperation <: Operation
     shape
-    children::Tuple{Vararg{Node}}
+    children::Tuple{AbstractIndex, AbstractTensor}
 end
 
-function Base.getindex(AbstractTensor, ConcreteIndex)
-    println("Cool")
+function Base.getindex(x::AbstractTensor, y::AbstractIndex)
+    return IndexOperation((1,), (y, x))
 end
