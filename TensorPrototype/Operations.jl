@@ -4,11 +4,11 @@ include("Indices.jl")
 
 import Base
 
-abstract type Operation <: Node end
+abstract type Operation <: AbstractTensor end
 
 struct Add <: Operation
     shape
-    children::Tuple{Vararg{Node}}
+    children::Tuple{Vararg{AbstractTensor}}
 end
 
 function +(nodes::Vararg{Node})
@@ -25,7 +25,7 @@ end
 
 struct IndexingOperation <: Operation
     shape
-    children::Tuple{AbstractIndices, Node}
+    children::Tuple{AbstractIndices, AbstractTensor}
     function IndexingOperation(x::Node, y::AbstractIndices)
         shapearray = []
         if length(y.indices) > length(x.shape)
@@ -49,10 +49,10 @@ struct IndexingOperation <: Operation
     end
 end
 
-function Base.getindex(x::Node, y::AbstractIndices)
+function Base.getindex(x::AbstractTensor, y::AbstractIndices)
     return IndexingOperation(x, y)
 end
 
-function Base.getindex(x::Node, ys::Vararg{Index})
+function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
     return IndexingOperation(x, ConcreteIndices(ys...))
 end
