@@ -16,7 +16,7 @@ struct ConcreteTensor <: AbstractTensor
     children
 end
 
-ConcreteTensor(x::Vararg{Scalar}) = ConcreteTensor(x, (length(x),), ())
+ConcreteTensor(x::Vararg{Scalar}) = ConcreteTensor([x...], (length(x),), ())
 
 # TODO Check these are scalar
 ConcreteTensor(x::AbstractArray) = ConcreteTensor(x, size(x), ())

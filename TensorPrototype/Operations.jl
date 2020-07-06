@@ -1,4 +1,3 @@
-include("Node.jl")
 include("Tensors.jl")
 include("Indices.jl")
 
@@ -6,12 +5,12 @@ import Base
 
 abstract type Operation <: AbstractTensor end
 
-struct Add <: Operation
+struct AddOperation <: Operation
     shape
     children::Tuple{Vararg{AbstractTensor}}
 end
 
-function +(nodes::Vararg{Node})
+function Base.:+(nodes::Vararg{Node})
     if length(nodes) > 1
         for node in nodes[2:length(nodes)]
             if node.shape != nodes[1].shape
@@ -20,7 +19,7 @@ function +(nodes::Vararg{Node})
             end
         end
     end
-    return Add(nodes[1].shape, nodes)
+    return AddOperation(nodes[1].shape, nodes)
 end
 
 struct IndexingOperation <: Operation
