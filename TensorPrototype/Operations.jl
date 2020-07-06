@@ -23,11 +23,15 @@ function +(nodes::Vararg{Node})
     return Add(nodes[1].shape, nodes)
 end
 
-struct IndexOperation <: Operation
+struct IndexingOperation <: Operation
     shape
-    children::Tuple{AbstractIndex, AbstractTensor}
+    children::Tuple{AbstractIndices, AbstractTensor}
 end
 
-function Base.getindex(x::AbstractTensor, y::AbstractIndex)
-    return IndexOperation((1,), (y, x))
+function Base.getindex(x::AbstractTensor, y::AbstractIndices)
+    return IndexingOperation((1,), (y, x))
+end
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+    return IndexingOperation((1,), (ConcreteIndices(ys), x))
 end

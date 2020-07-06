@@ -1,6 +1,6 @@
 include("Node.jl")
 
-abstract type AbstractIndex <: Node end
+abstract type AbstractIndices <: Node end
 
 struct FreeIndex
     name
@@ -8,9 +8,9 @@ end
 
 Index = Union{Int, FreeIndex}
 
-struct ConcreteIndex <: AbstractIndex
+struct ConcreteIndices <: AbstractIndices
     indices
     children
 end
 
-ConcreteIndex(indices...) = ConcreteIndex(indices, ())
+ConcreteIndices(indices...) = ConcreteIndices(indices, ())
