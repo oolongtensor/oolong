@@ -13,4 +13,4 @@ struct ConcreteIndices <: AbstractIndices
     children
 end
 
-ConcreteIndices(indices...) = ConcreteIndices(indices, ())
+ConcreteIndices(indices::Vararg{Index}) = ConcreteIndices(indices, ())

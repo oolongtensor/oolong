@@ -33,5 +33,5 @@ function Base.getindex(x::AbstractTensor, y::AbstractIndices)
 end
 
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return IndexingOperation((1,), (ConcreteIndices(ys), x))
+    return IndexingOperation((1,), (ConcreteIndices(ys...), x))
 end
