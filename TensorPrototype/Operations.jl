@@ -25,13 +25,34 @@ end
 
 struct IndexingOperation <: Operation
     shape
-    children::Tuple{AbstractIndices, AbstractTensor}
+    children::Tuple{AbstractIndices, Node}
+    function IndexingOperation(x::Node, y::AbstractIndices)
+        shapearray = []
+        if length(y.indices) > length(x.shape)
+            error("Too many indices")
+        end
+        for i in 1:length(x.shape)
+            if i > length(y.indices) || typeof(y.indices[i]) == Colon
+                push!(shapearray, x.shape[i])
+            elseif typeof(y.indices[i]) <: Int
+                if y.indices[i] > x.shape[i]
+                    error("Index out of range")
+                end
+                # TODO Check for free indices
+            end
+        end
+        shapetuple = tuple(shapearray...)
+        if length(shapetuple) < 1
+            shapetuple = (1,)
+        end
+        new(shapetuple, (y, x))
+    end
 end
 
-function Base.getindex(x::AbstractTensor, y::AbstractIndices)
-    return IndexingOperation((1,), (y, x))
+function Base.getindex(x::Node, y::AbstractIndices)
+    return IndexingOperation(x, y)
 end
 
-function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return IndexingOperation((1,), (ConcreteIndices(ys...), x))
+function Base.getindex(x::Node, ys::Vararg{Index})
+    return IndexingOperation(x, ConcreteIndices(ys...))
 end

@@ -4,9 +4,10 @@ abstract type AbstractIndices <: Node end
 
 struct FreeIndex
     name
+    range
 end
 
-Index = Union{Int, FreeIndex}
+Index = Union{Int, FreeIndex, Colon}
 
 struct ConcreteIndices <: AbstractIndices
     indices
