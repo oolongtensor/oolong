@@ -8,7 +8,7 @@ struct ScalarVariable <: AbstractTensor end
 
 Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
 
-struct ConcreteTensor <: AbstractTensor
+struct Tensor <: AbstractTensor
     # Some kind of a collection of Scalars
     value
     shape::Tuple{Vararg{AbstractVectorSpace}}
