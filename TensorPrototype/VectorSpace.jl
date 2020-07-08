@@ -19,4 +19,4 @@ end
 dual(V::VectorSpace) = DualVectorSpace(V)
 dual(Vstar::DualVectorSpace) = Vstar.vectorSpace
 dim(V::VectorSpace) = V.dim
-dim(Vstar::DualVectorSpace) = V.vectorSpace.dim
+dim(Vstar::DualVectorSpace) = Vstar.vectorSpace.dim
