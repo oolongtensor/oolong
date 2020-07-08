@@ -55,15 +55,3 @@ end
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
     return IndexingOperation(x, Indices(ys...))
 end
-
-struct TransposeOperation <: Operation
-    shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor}
-end
-
-function Base.transpose(x::AbstractTensor)
-    if length(x.shape) != 2
-        error("Invalid shape")
-    end
-    return TransposeOperation(reverse(x.shape), (x,))
-end
