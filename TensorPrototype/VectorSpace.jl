@@ -1,16 +1,20 @@
 abstract type AbstractVectorSpace end
 
-struct DualVectorSpace <: AbstractVectorSpace
-    dual::AbstractVectorSpace
-end
+counter = 0
 
-mutable struct VectorSpace <: AbstractVectorSpace
-    dim::Integer
-    dual::DualVectorSpace
+struct VectorSpace <: AbstractVectorSpace
+    dim
+    id
     function VectorSpace(dim::Integer)
-        x = new(dim)
-        x.dual = DualVectorSpace(x)
+        global counter
+        counter += 1
+        new(dim, counter)
     end
 end
 
-dual(V::AbstractVectorSpace) = V.dual
+struct DualVectorSpace <: AbstractVectorSpace
+    vectorSpace::AbstractVectorSpace
+end
+
+dual(V::VectorSpace) = DualVectorSpace(V)
+dual(Vstar::DualVectorSpace) = Vstar.vectorSpace
