@@ -22,40 +22,6 @@ function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes[1].shape, nodes)
 end
 
-struct IndexingOperation <: Operation
-    shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{Indices, AbstractTensor}
-    function IndexingOperation(x::Node, y::Indices)
-        shapearray = []
-        if length(y.indices) > length(x.shape)
-            error("Too many indices")
-        end
-        for i in 1:length(x.shape)
-            if i > length(y.indices) || typeof(y.indices[i]) == Colon
-                push!(shapearray, x.shape[i])
-            elseif typeof(y.indices[i]) <: Int
-                if y.indices[i] > x.shape[i]
-                    error("Index out of range")
-                end
-                # TODO Check for free indices
-            end
-        end
-        shapetuple = tuple(shapearray...)
-        if length(shapetuple) < 1
-            shapetuple = (1,)
-        end
-        new(shapetuple, (y, x))
-    end
-end
-
-function Base.getindex(x::AbstractTensor, y::Indices)
-    return IndexingOperation(x, y)
-end
-
-function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return IndexingOperation(x, Indices(ys...))
-end
-
 struct TransposeOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor}
