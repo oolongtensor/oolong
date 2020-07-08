@@ -6,7 +6,9 @@ abstract type AbstractTensor <: Node end
 # TODO Is this inheritance a good idea?
 struct ScalarVariable <: AbstractTensor end
 
-Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
+abstract type ScalarOperation end
+
+Scalar = Union{ScalarOperation, ScalarVariable, Base.Complex, Base.Real}
 
 struct Tensor <: AbstractTensor
     # Some kind of a collection of Scalars
