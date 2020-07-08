@@ -3,8 +3,8 @@ abstract type AbstractVectorSpace end
 counter = 0
 
 struct VectorSpace <: AbstractVectorSpace
-    dim
-    id
+    dim::Int
+    id::Int
     function VectorSpace(dim::Integer)
         global counter
         counter += 1
