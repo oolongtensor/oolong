@@ -1,17 +1,26 @@
 include("Node.jl")
+include("VectorSpace.jl")
 
 abstract type AbstractIndices <: Node end
 
-struct FreeIndex
-    name
-    range
+abstract type Index end
+
+struct FreeIndex <: Index
+    V::AbstractVectorSpace
 end
 
-Index = Union{Int, FreeIndex, Colon}
+Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V))
 
-struct ConcreteIndices <: AbstractIndices
+struct FixedIndex <: Index
+    value::Int
+    V::AbstractVectorSpace
+end
+
+Base.adjoint(i::FixedIndex) = FixedIndex(i.value, dual(i.V))
+
+struct Indices <: AbstractIndices
     indices
     children
 end
 
-ConcreteIndices(indices::Vararg{Index}) = ConcreteIndices(indices, ())
+Indices(indices::Vararg{Index}) = Indices(indices, ())

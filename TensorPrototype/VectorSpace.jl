@@ -18,3 +18,5 @@ end
 
 dual(V::VectorSpace) = DualVectorSpace(V)
 dual(Vstar::DualVectorSpace) = Vstar.vectorSpace
+dim(V::VectorSpace) = V.dim
+dim(V::DualVectorSpace) = V.vectorSpace.dim
