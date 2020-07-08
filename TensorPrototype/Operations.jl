@@ -24,8 +24,8 @@ end
 
 struct IndexingOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractIndices, AbstractTensor}
-    function IndexingOperation(x::Node, y::AbstractIndices)
+    children::Tuple{Indices, AbstractTensor}
+    function IndexingOperation(x::Node, y::Indices)
         shapearray = []
         if length(y.indices) > length(x.shape)
             error("Too many indices")
@@ -48,12 +48,12 @@ struct IndexingOperation <: Operation
     end
 end
 
-function Base.getindex(x::AbstractTensor, y::AbstractIndices)
+function Base.getindex(x::AbstractTensor, y::Indices)
     return IndexingOperation(x, y)
 end
 
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return IndexingOperation(x, ConcreteIndices(ys...))
+    return IndexingOperation(x, Indices(ys...))
 end
 
 struct TransposeOperation <: Operation

@@ -1,8 +1,6 @@
 include("Node.jl")
 include("VectorSpace.jl")
 
-abstract type AbstractIndices <: Node end
-
 abstract type Index end
 
 struct FreeIndex <: Index
@@ -24,7 +22,7 @@ end
 
 Base.adjoint(i::FixedIndex) = FixedIndex(i.value, dual(i.V))
 
-struct Indices <: AbstractIndices
+struct Indices <: Node
     indices
     children
 end
