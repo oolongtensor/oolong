@@ -23,7 +23,7 @@ function Base.:+(nodes::Vararg{Node})
 end
 
 struct IndexingOperation <: Operation
-    shape
+    shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractIndices, AbstractTensor}
     function IndexingOperation(x::Node, y::AbstractIndices)
         shapearray = []
@@ -57,7 +57,7 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
 end
 
 struct TransposeOperation <: Operation
-    shape
+    shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor}
 end
 
