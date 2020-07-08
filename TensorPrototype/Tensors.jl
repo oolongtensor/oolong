@@ -14,7 +14,7 @@ struct Tensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children
     # TODO Check x consists of scalars, if possible
-    function ConcreteTensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
+    function Tensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
         if ndims(x) != length(Vs)
             error("Wrong number of vector spaces")
         end
