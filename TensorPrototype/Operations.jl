@@ -6,7 +6,7 @@ import Base
 abstract type Operation <: AbstractTensor end
 
 struct AddOperation <: Operation
-    shape
+    shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
 end
 

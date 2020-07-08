@@ -12,7 +12,7 @@ struct ConcreteTensor <: AbstractTensor
 
     # Some kind of a collection of Scalars
     value
-    shape
+    shape::Tuple{Vararg{AbstractVectorSpace}}
     children
 end
 
