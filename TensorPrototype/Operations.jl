@@ -67,3 +67,12 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     end
     return Base.getindex(x, Indices(tuple(indexarray...)...))
 end
+
+struct OuterProductOperation <: Operation
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{AbstractTensor, AbstractTensor}
+end
+
+function ⊗(x::AbstractTensor, y::AbstractTensor)
+    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y))
+end
