@@ -16,7 +16,13 @@ struct DualVectorSpace <: AbstractVectorSpace
     vectorSpace::AbstractVectorSpace
 end
 
+struct RnSpace <: AbstractVectorSpace
+    dim::Int
+end
+
 dual(V::VectorSpace) = DualVectorSpace(V)
 dual(Vstar::DualVectorSpace) = Vstar.vectorSpace
+dual(R::RnSpace) = R
 dim(V::VectorSpace) = V.dim
 dim(Vstar::DualVectorSpace) = Vstar.vectorSpace.dim
+dim(R::RnSpace) = R.dim
