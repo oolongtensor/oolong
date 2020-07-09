@@ -3,16 +3,16 @@ include("VectorSpace.jl")
 
 abstract type Index end
 
-struct FreeIndex <: Index
-    V::AbstractVectorSpace
+struct FreeIndex{T<:AbstractVectorSpace} <: Index
+    V::T
 end
 
 Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V))
 
-struct FixedIndex <: Index
+struct FixedIndex{T<:AbstractVectorSpace} <: Index
+    V::T
     value::Int
-    V::AbstractVectorSpace
-    function FixedIndex(value::Int, V::AbstractVectorSpace)
+    function FixedIndex{T}(value::Int, V::T) where {T<:AbstractVectorSpace}
         if value < 1 || value > dim(V)
             error("Index not in range")
         end
