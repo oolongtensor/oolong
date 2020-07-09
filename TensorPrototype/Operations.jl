@@ -38,3 +38,32 @@ end
 function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
+
+struct IndexingOperation <: ScalarOperation
+    children::Tuple{AbstractTensor, Indices}
+end
+
+function Base.getindex(x::AbstractTensor, y::Indices)
+    if length(x.shape) != length(y.indices)
+        error("Invalid number of indices")
+    end
+    for i in 1:length(y.indices)
+        if x.shape[i] != y.indices[i].V
+            error("Invalid vector space")
+        end
+    end
+    return IndexingOperation((x, y))
+end
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+    return Base.getindex(x, Indices(ys...))
+end
+
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
+    indexarray = []
+    for i in 1:length(ys)
+        push!(indexarray, toindex(x.shape[i], ys[i]))
+    end
+    return Base.getindex(x, Indices(tuple(indexarray...)...))
+end
