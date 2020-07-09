@@ -5,9 +5,10 @@ abstract type Index end
 
 struct FreeIndex{T<:AbstractVectorSpace} <: Index
     V::T
+    name::String
 end
 
-Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V))
+Base.adjoint(i::FreeIndex) = FreeIndex(i.name, dual(i.V))
 
 struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
@@ -28,3 +29,11 @@ struct Indices <: Node
 end
 
 Indices(indices::Vararg{Index}) = Indices(indices, ())
+
+function toindex(i::Int, V::AbstractVectorSpace)
+    return FixedIndex(i, V)
+end
+
+function toindex(s::String, V::AbstractVectorSpace)
+    return FreeIndex(s, V)
+end
