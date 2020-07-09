@@ -3,9 +3,15 @@ include("VectorSpace.jl")
 
 abstract type Index end
 
+<<<<<<< HEAD
 struct FreeIndex{T<:AbstractVectorSpace} <: Index
     V::T
     name::String
+=======
+struct FreeIndex <: Index
+    name::String
+    V::AbstractVectorSpace
+>>>>>>> 40ad75ae949139b7f1e45d13466750555913b362
 end
 
 Base.adjoint(i::FreeIndex) = FreeIndex(i.name, dual(i.V))
