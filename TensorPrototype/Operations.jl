@@ -58,3 +58,10 @@ end
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
     return Base.getindex(x, Indices(ys...))
 end
+
+#=
+function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
+    indexarray = []
+    for i in ys
+end
+=#

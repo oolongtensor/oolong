@@ -4,10 +4,11 @@ include("VectorSpace.jl")
 abstract type Index end
 
 struct FreeIndex <: Index
+    name::String
     V::AbstractVectorSpace
 end
 
-Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V))
+Base.adjoint(i::FreeIndex) = FreeIndex(i.name, dual(i.V))
 
 struct FixedIndex <: Index
     value::Int
@@ -28,3 +29,11 @@ struct Indices <: Node
 end
 
 Indices(indices::Vararg{Index}) = Indices(indices, ())
+
+function toindex(i::Int, V::AbstractVectorSpace)
+    return FixedIndex(i, V)
+end
+
+function toindex(s::String, V::AbstractVectorSpace)
+    return FreeIndex(s, V)
+end
