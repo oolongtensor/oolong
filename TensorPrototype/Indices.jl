@@ -12,13 +12,13 @@ Base.adjoint(i::FreeIndex) = FreeIndex(i.name, dual(i.V))
 
 struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
-    value::Int #=
+    value::Int
     function FixedIndex(V::T, value::Int) where {T<:AbstractVectorSpace}
         if value < 1 || value > dim(V)
             error("Index not in range")
         end
-        new(value, V)
-    end=#
+        new{T}(V, value)
+    end
 end
 
 Base.adjoint(i::FixedIndex) = FixedIndex(i.value, dual(i.V))
