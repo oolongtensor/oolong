@@ -8,7 +8,7 @@ struct FreeIndex{T<:AbstractVectorSpace} <: Index
     name::String
 end
 
-Base.adjoint(i::FreeIndex) = FreeIndex(i.name, dual(i.V))
+Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V), i.name)
 
 struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
@@ -21,7 +21,7 @@ struct FixedIndex{T<:AbstractVectorSpace} <: Index
     end
 end
 
-Base.adjoint(i::FixedIndex) = FixedIndex(i.value, dual(i.V))
+Base.adjoint(i::FixedIndex) = FixedIndex(dual(i.V), i.value)
 
 struct Indices <: Node
     indices
