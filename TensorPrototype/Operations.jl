@@ -74,3 +74,22 @@ end
 function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
+
+struct ContractionOperation <: Operation
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{AbstractTensor, Int, Int}
+end
+
+function contr(A::AbstractTensor, i::Int, j::Int)
+    if i == j
+        error("Repeat index in contraction")
+    end
+    if A.shape[i] != dual(A.shape[j])
+        error("Not contracting over dual")
+    end
+    if i > j
+        i, j = j, i
+    end
+    shape = tuple(A.shape[1:(i-1)]..., A.shape[(i+1):(j-1)]..., A.shape[(j+1):length(A.shape)]...)
+    return ContractionOperation(shape, (A, i, j))
+end
