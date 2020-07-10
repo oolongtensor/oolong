@@ -22,26 +22,12 @@ function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes[1].shape, nodes)
 end
 
-struct ScalarMulOperation <: Operation
-    shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{Scalar, AbstractTensor}
-end
-
-function Base.:*(x::Scalar, A::AbstractTensor)
-    return ScalarMulOperation(A.shape, (x, A))
-end
-
-function Base.:-(A::AbstractTensor)
-    return -1*A
-end
-
-function Base.:-(A::AbstractTensor, B::AbstractTensor)
-    return A + (-1*B)
-end
-
-struct IndexingOperation <: ScalarOperation
+struct IndexingOperation <: Operation
+    shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
 end
+
+IndexingOperation(children::Tuple{AbstractTensor, Indices}) = IndexingOperation((), children)
 
 function Base.getindex(x::AbstractTensor, y::Indices)
     if length(x.shape) != length(y.indices)
@@ -75,4 +61,16 @@ end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y))
+end
+
+function Base.:*(x::Scalar, A::AbstractTensor)
+    return Tensor([x]) ⊗ A
+end
+
+function Base.:-(A::AbstractTensor)
+    return -1*A
+end
+
+function Base.:-(A::AbstractTensor, B::AbstractTensor)
+    return A + (-1*B)
 end
