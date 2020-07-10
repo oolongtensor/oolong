@@ -3,14 +3,16 @@ abstract type AbstractVectorSpace end
 counter = 0
 
 struct VectorSpace <: AbstractVectorSpace
-    dim::Int
+    dim::Union{Int, Nothing}
     id::Int
-    function VectorSpace(dim::Integer)
+    function VectorSpace(dim::Union{Int, Nothing})
         global counter
         counter += 1
         new(dim, counter)
     end
 end
+
+VectorSpace() = VectorSpace(nothing)
 
 struct DualVectorSpace <: AbstractVectorSpace
     vectorSpace::AbstractVectorSpace
