@@ -93,3 +93,10 @@ function contr(A::AbstractTensor, i::Int, j::Int)
     shape = tuple(A.shape[1:(i-1)]..., A.shape[(i+1):(j-1)]..., A.shape[(j+1):length(A.shape)]...)
     return ContractionOperation(shape, (A, i, j))
 end
+
+function Base.:*(A::AbstractTensor, B::AbstractTensor)
+    if A.shape[length(A.shape)] != dual(B.shape[1])
+        error("Cannot contract")
+    end
+    return contr(A⊗B, length(A.shape), length(A.shape) + 1)
+end
