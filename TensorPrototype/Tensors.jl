@@ -31,7 +31,6 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
 end
 
 struct Tensor{T<:Scalar} <: AbstractTensor
-    # Some kind of a collection of Scalars
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
