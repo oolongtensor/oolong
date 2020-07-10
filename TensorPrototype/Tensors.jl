@@ -15,6 +15,8 @@ struct VariableTensor <: AbstractTensor
     # Field information?
 end
 
+VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, ())
+
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
     elseif ndims(x) != length(Vs)
