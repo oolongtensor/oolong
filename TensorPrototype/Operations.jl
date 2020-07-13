@@ -29,7 +29,7 @@ struct IndexingOperation <: Operation
     freeindices::Set{FreeIndex}
 end
 
-IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), Set([i for i=indices.indices if i isa FreeIndex]))
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
 
 function Base.getindex(x::AbstractTensor, y::Indices)
     if length(x.shape) != length(y.indices)
