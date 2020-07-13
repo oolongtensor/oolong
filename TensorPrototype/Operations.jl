@@ -63,7 +63,7 @@ struct OuterProductOperation <: Operation
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y))
+    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  union(x.freeindices, y.freeindices))
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
