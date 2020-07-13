@@ -20,7 +20,7 @@ function Base.:+(nodes::Vararg{Node})
             end
         end
     end
-    return AddOperation(nodes[1].shape, nodes, (union((node.freeindices for node=nodes)...)))
+    return AddOperation(nodes[1].shape, nodes, union((node.freeindices for node=nodes)...))
 end
 
 struct IndexingOperation <: Operation
