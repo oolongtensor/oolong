@@ -8,6 +8,7 @@ abstract type Operation <: AbstractTensor end
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
+    freeindices::Set{FreeIndex}
 end
 
 function Base.:+(nodes::Vararg{Node})
@@ -25,9 +26,10 @@ end
 struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
+    freeindices::Set{FreeIndex}
 end
 
-IndexingOperation(children::Tuple{AbstractTensor, Indices}) = IndexingOperation((), children)
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), Set([i for i=indices.indices if i isa FreeIndex]))
 
 function Base.getindex(x::AbstractTensor, y::Indices)
     if length(x.shape) != length(y.indices)
@@ -38,7 +40,7 @@ function Base.getindex(x::AbstractTensor, y::Indices)
             error("Invalid vector space")
         end
     end
-    return IndexingOperation((x, y))
+    return IndexingOperation(x, y)
 end
 
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
@@ -57,6 +59,7 @@ end
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
+    freeindices::Set{FreeIndex}
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
@@ -75,28 +78,10 @@ function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
 
-struct ContractionOperation <: Operation
+struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, Int, Int}
+    children::Tuple{AbstractTensor, Int}
+    freeindices::Set{FreeIndex}
 end
 
-function contr(A::AbstractTensor, i::Int, j::Int)
-    if i == j
-        error("Repeat index in contraction")
-    end
-    if A.shape[i] != dual(A.shape[j])
-        error("Not contracting over dual")
-    end
-    if i > j
-        i, j = j, i
-    end
-    shape = tuple(A.shape[1:(i-1)]..., A.shape[(i+1):(j-1)]..., A.shape[(j+1):length(A.shape)]...)
-    return ContractionOperation(shape, (A, i, j))
-end
-
-function Base.:*(A::AbstractTensor, B::AbstractTensor)
-    if A.shape[length(A.shape)] != dual(B.shape[1])
-        error("Cannot contract")
-    end
-    return contr(A⊗B, length(A.shape), length(A.shape) + 1)
-end
+# function componentTensor(AbstractTensor A,
