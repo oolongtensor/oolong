@@ -8,6 +8,7 @@ abstract type Operation <: AbstractTensor end
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
+    freeindices::Set{FreeIndex}
 end
 
 function Base.:+(nodes::Vararg{Node})
@@ -19,15 +20,16 @@ function Base.:+(nodes::Vararg{Node})
             end
         end
     end
-    return AddOperation(nodes[1].shape, nodes)
+    return AddOperation(nodes[1].shape, nodes, union((node.freeindices for node=nodes)...))
 end
 
 struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
+    freeindices::Set{FreeIndex}
 end
 
-IndexingOperation(children::Tuple{AbstractTensor, Indices}) = IndexingOperation((), children)
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
 
 function Base.getindex(x::AbstractTensor, y::Indices)
     if length(x.shape) != length(y.indices)
@@ -38,7 +40,7 @@ function Base.getindex(x::AbstractTensor, y::Indices)
             error("Invalid vector space")
         end
     end
-    return IndexingOperation((x, y))
+    return IndexingOperation(x, y)
 end
 
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
@@ -57,10 +59,11 @@ end
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
+    freeindices::Set{FreeIndex}
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y))
+    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  union(x.freeindices, y.freeindices))
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
@@ -75,28 +78,31 @@ function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
 
-struct ContractionOperation <: Operation
+struct ComponentTensorIndex
+    index::FreeIndex
+    loc::Int # The index of the new dimension
+    children::Tuple{}
+end
+
+ComponentTensorIndex(index::FreeIndex, loc::Int) = ComponentTensorIndex(index, loc, ())
+
+struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, Int, Int}
+    children::Tuple{AbstractTensor, ComponentTensorIndex}
+    freeindices::Set{FreeIndex}
 end
 
-function contr(A::AbstractTensor, i::Int, j::Int)
-    if i == j
-        error("Repeat index in contraction")
+function componentTensor(A::AbstractTensor, i::FreeIndex, loc::Int)
+    if !(i in A.freeindices)
+        error("The free index to loop over is not there")
     end
-    if A.shape[i] != dual(A.shape[j])
-        error("Not contracting over dual")
-    end
-    if i > j
-        i, j = j, i
-    end
-    shape = tuple(A.shape[1:(i-1)]..., A.shape[(i+1):(j-1)]..., A.shape[(j+1):length(A.shape)]...)
-    return ContractionOperation(shape, (A, i, j))
+    shape = tuple(A.shape[1:(loc-1)]..., i.V, A.shape[loc:length(A.shape)]...)
+    ctindex = ComponentTensorIndex(i, loc)
+    freeindices = setdiff(A.freeindices, [i])
+    return ComponentTensorOperation(shape, (A, ctindex), freeindices)
 end
 
-function Base.:*(A::AbstractTensor, B::AbstractTensor)
-    if A.shape[length(A.shape)] != dual(B.shape[1])
-        error("Cannot contract")
-    end
-    return contr(A⊗B, length(A.shape), length(A.shape) + 1)
+# Defaults to looping over the new index at the end
+function componentTensor(A::AbstractTensor, i::FreeIndex)
+    return componentTensor(A, i, length(A.shape) + 1)
 end

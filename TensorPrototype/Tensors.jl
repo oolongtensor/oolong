@@ -1,5 +1,6 @@
 include("Node.jl")
 include("VectorSpace.jl")
+include("Indices.jl")
 
 abstract type AbstractTensor <: Node end
 
@@ -12,10 +13,11 @@ Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
 struct VariableTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
+    freeindices::Set{FreeIndex}
     # Field information?
 end
 
-VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, ())
+VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, (), Set())
 
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
@@ -34,10 +36,11 @@ struct Tensor{T<:Scalar} <: AbstractTensor
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
+    freeindices::Set{FreeIndex}
     # TODO Check x consists of scalars, if possible
     function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where (T<:Scalar)
         checktensordimensions(x, Vs...)
-        new{T}(x, Vs, ())
+        new{T}(x, Vs, (), Set())
     end
 end
 
@@ -45,9 +48,10 @@ struct MixedTensor <: AbstractTensor
     value::AbstractArray
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
+    freeindices::Set{FreeIndex}
     # TODO Check x consists of scalars, if possible
     function MixedTensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
         checktensordimensions(x, Vs...)
-        new(x, Vs,  ())
+        new(x, Vs,  (), Set())
     end
 end
