@@ -78,10 +78,31 @@ function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
 
+struct ComponentTensorIndex
+    index::FreeIndex
+    loc::Int # The index of the new dimension
+    children::Tuple{}
+end
+
+ComponentTensorIndex(index::FreeIndex, loc::Int) = ComponentTensorIndex(index, loc, ())
+
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, Int}
+    children::Tuple{AbstractTensor, ComponentTensorIndex}
     freeindices::Set{FreeIndex}
 end
 
-# function componentTensor(AbstractTensor A,
+function componentTensor(A::AbstractTensor, i::FreeIndex, loc::Int)
+    if !(i in A.freeindices)
+        error("The free index to loop over is not there")
+    end
+    shape = tuple(A.shape[1:(loc-1)]..., i.V, A.shape[loc:length(A.shape)]...)
+    ctindex = ComponentTensorIndex(i, loc)
+    freeindices = setdiff(A.freeindices, [i])
+    return ComponentTensorOperation(shape, (A, ctindex), freeindices)
+end
+
+# Defaults to looping over the new index at the end
+function componentTensor(A::AbstractTensor, i::FreeIndex)
+    return componentTensor(A, i, length(A.shape) + 1)
+end
