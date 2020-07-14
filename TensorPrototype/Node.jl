@@ -6,7 +6,7 @@ function Base.show(io::IO, node::Node, depth::Int)
     print(io, ["\t" for i in 1:depth]..., typeof(node), " {")
     for name in fieldnames(typeof(node))
         fieldcontent = getfield(node, name)
-        if fieldcontent != () && name != :children
+        if fieldcontent != () && fieldcontent != Set() && name != :children
             print(io, " ", name, " : ", fieldcontent, ",")
         end
     end
