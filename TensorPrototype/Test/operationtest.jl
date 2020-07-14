@@ -13,7 +13,8 @@ w = FreeIndex(Vj, "w")
 
 A = VariableTensor(V3, V2)
 B = Tensor(fill(1.2, (3, 2)), V3, V2)
-C = VariableTensor(Vj, Vi, dual(Vi))
+C = VariableTensor(Vj, Vi, Vi')
+D = VariableTensor(V2', Vi)
 @testset "Operations" begin
     @testset "Addition" begin
         @test (A + B).shape == A.shape
@@ -45,5 +46,8 @@ C = VariableTensor(Vj, Vi, dual(Vi))
         @test indexsum(C[w, z, z'], z).shape == ()
         @test indexsum(C[w, z, z'], z).freeindices == Set([w])
         @test indexsum(C[w, z, z'], z).children[2] == Indices(z)
+    end
+    @testset "Tensor contraction" begin
+        @test (A[x, y]*D[y', z]).shape == (V3, Vi)
     end
 end

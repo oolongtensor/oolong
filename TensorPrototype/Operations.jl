@@ -132,11 +132,39 @@ end
 
 IndexSumOperation(A::AbstractTensor, i::Index, freeindices::Set{FreeIndex}) = IndexSumOperation((), (A, Indices(i)), freeindices)
 
-# Sums over i and i'
+# Sums over i:s and i':s
 function indexsum(A::AbstractTensor, i::FreeIndex)
     if A.shape != ()
         error("Requires scalar") # TODO does it?
     end
     freeindices = setdiff(A.freeindices, [i, i'])
     return IndexSumOperation(A, i, freeindices)
+end
+
+function tensorcontraction(A::IndexingOperation, B::IndexingOperation, i::FreeIndex)
+    op = indexsum(A⊗B, i)
+    for index in (A.children[2].indices..., B.children[2].indices...)
+        if index != i && index in op.freeindices
+            op = componentTensor(op, index)
+        end
+    end
+    return op
+end
+
+function tensorcontraction(A::IndexingOperation, B::IndexingOperation)
+    tocontract = nothing
+    for i in A.children[2].indices
+        if i' in B.children[2].indices
+            tocontract = i
+            break
+        end
+    end
+    if tocontract == nothing
+        return A⊗B
+    end
+    return tensorcontraction(A, B, tocontract)
+end
+
+function Base.:*(A::IndexingOperation, B::IndexingOperation)
+    return tensorcontraction(A, B)
 end
