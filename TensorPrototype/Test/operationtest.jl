@@ -26,6 +26,9 @@ B = Tensor(fill(1.2, (3, 2)), V3, V2)
         @test (A⊗B).shape == (V3, V2, V3, V2)
         @test (A⊗B).children == (A, B)
         @test (A[x,1] ⊗ B[1, y]).freeindices == Set([x, y])
+        @test (A - B).shape == (V3, V2)
+        @test (-B).shape == (V3, V2)
+        @test (A - B) isa AddOperation
     end
     @testset "Component tensor" begin
         @test componentTensor(A[x, 1], x).shape == (V3,)
