@@ -53,7 +53,7 @@ end
 
 IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
 
-struct ComponentTensorIndex
+struct ComponentTensorIndex <: Node
     index::FreeIndex
     loc::Int # The index of the new dimension
     children::Tuple{}
