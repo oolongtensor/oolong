@@ -21,6 +21,8 @@ B = Tensor(fill(1.2, (3, 2)), V3, V2)
         @test A[x, 1].shape == ()
         @test A[x, 1].freeindices == Set([x])
         @test_throws ErrorException A[x, x]
+        @test A[x].shape == (V2,)
+        @test A[x] isa ComponentTensorOperation
     end
     @testset "Outer product" begin
         @test (A⊗B).shape == (V3, V2, V3, V2)

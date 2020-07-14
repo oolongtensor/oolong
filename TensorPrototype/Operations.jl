@@ -85,15 +85,32 @@ end
 idcounter = 0
 
 function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+    if length(ys) == 0
+        return x
+    end
     if length(x.shape) < length(ys)
-        error("Not enough indices")
+        error("Too many indices")
     end
     for i in 1:length(ys)
         if x.shape[i] != ys[i].V
             error("Invalid vector space")
         end
     end
-    return IndexingOperation(x, Indices(ys...))
+    if length(ys) < length(x.shape)
+        addedindices = []
+        global idcounter
+        for i in 1:(length(x.shape) - length(ys))
+            push!(addedindices, FreeIndex(x.shape[length(ys) + 1], "", idcounter))
+            idcounter += 1
+        end
+        op = IndexingOperation(x, Indices(ys..., addedindices...))
+        for i in 1:(length(x.shape) - length(ys))
+            op = componentTensor(op, addedindices[i])
+        end
+        return op
+    else
+        return IndexingOperation(x, Indices(ys...))
+    end
 end
 
 
