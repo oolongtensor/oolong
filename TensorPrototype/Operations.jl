@@ -78,7 +78,7 @@ function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
 
-struct ComponentTensorIndex
+struct ComponentTensorIndex <: Node
     index::FreeIndex
     loc::Int # The index of the new dimension
     children::Tuple{}
