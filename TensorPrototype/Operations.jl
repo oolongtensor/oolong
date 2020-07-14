@@ -82,20 +82,18 @@ function componentTensor(A::AbstractTensor, i::FreeIndex)
     return componentTensor(A, i, length(A.shape) + 1)
 end
 
-function Base.getindex(x::AbstractTensor, y::Indices)
-    if length(x.shape) != length(y.indices)
-        error("Invalid number of indices")
+idcounter = 0
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+    if length(x.shape) < length(ys)
+        error("Not enough indices")
     end
-    for i in 1:length(y.indices)
-        if x.shape[i] != y.indices[i].V
+    for i in 1:length(ys)
+        if x.shape[i] != ys[i].V
             error("Invalid vector space")
         end
     end
-    return IndexingOperation(x, y)
-end
-
-function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return Base.getindex(x, Indices(ys...))
+    return IndexingOperation(x, Indices(ys...))
 end
 
 
@@ -104,5 +102,5 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     for i in 1:length(ys)
         push!(indexarray, toindex(x.shape[i], ys[i]))
     end
-    return Base.getindex(x, Indices(tuple(indexarray...)...))
+    return Base.getindex(x, indexarray...)
 end

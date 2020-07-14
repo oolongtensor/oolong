@@ -6,9 +6,12 @@ abstract type Index end
 struct FreeIndex{T<:AbstractVectorSpace} <: Index
     V::T
     name::String
+    id::Int
 end
 
-Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V), i.name)
+FreeIndex(V::T, name::String) where {T<:AbstractVectorSpace} = FreeIndex(V, name, 0)
+
+Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V), i.name, i.id)
 
 struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
