@@ -1,6 +1,8 @@
 include("Node.jl")
 include("VectorSpace.jl")
 
+import Base
+
 abstract type Index end
 
 struct FreeIndex{T<:AbstractVectorSpace} <: Index

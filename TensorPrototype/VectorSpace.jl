@@ -1,3 +1,5 @@
+import Base
+
 abstract type AbstractVectorSpace end
 
 counter = 0
@@ -28,3 +30,5 @@ dual(R::RnSpace) = R
 dim(V::VectorSpace) = V.dim
 dim(Vstar::DualVectorSpace) = Vstar.vectorSpace.dim
 dim(R::RnSpace) = R.dim
+
+Base.adjoint(V::AbstractVectorSpace) = dual(V)

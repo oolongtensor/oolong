@@ -121,3 +121,22 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     end
     return Base.getindex(x, indexarray...)
 end
+
+IndexSumIndex(is::Vararg{Int}) = IndexSumIndex(is, ())
+
+struct IndexSumOperation <: Operation
+    shape::Tuple{}
+    children::Tuple{AbstractTensor, Indices}
+    freeindices::Set{FreeIndex}
+end
+
+IndexSumOperation(A::AbstractTensor, i::Index, freeindices::Set{FreeIndex}) = IndexSumOperation((), (A, Indices(i)), freeindices)
+
+# Sums over i and i'
+function indexsum(A::AbstractTensor, i::FreeIndex)
+    if A.shape != ()
+        error("Requires scalar") # TODO does it?
+    end
+    freeindices = setdiff(A.freeindices, [i, i'])
+    return IndexSumOperation(A, i, freeindices)
+end
