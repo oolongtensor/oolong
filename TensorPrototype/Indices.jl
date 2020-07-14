@@ -38,6 +38,7 @@ function toindex(V::AbstractVectorSpace, s::String)
     return FreeIndex(V, s)
 end
 
-function toindex(i::Index)
+# Added for convenience, does nothing
+function toindex(V::AbstractVectorSpace, i::Index)
     return i
 end

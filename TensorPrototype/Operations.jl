@@ -23,39 +23,6 @@ function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes[1].shape, nodes, union((node.freeindices for node=nodes)...))
 end
 
-struct IndexingOperation <: Operation
-    shape::Tuple{}
-    children::Tuple{AbstractTensor, Indices}
-    freeindices::Set{FreeIndex}
-end
-
-IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
-
-function Base.getindex(x::AbstractTensor, y::Indices)
-    if length(x.shape) != length(y.indices)
-        error("Invalid number of indices")
-    end
-    for i in 1:length(y.indices)
-        if x.shape[i] != y.indices[i].V
-            error("Invalid vector space")
-        end
-    end
-    return IndexingOperation(x, y)
-end
-
-function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
-    return Base.getindex(x, Indices(ys...))
-end
-
-
-function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
-    indexarray = []
-    for i in 1:length(ys)
-        push!(indexarray, toindex(x.shape[i], ys[i]))
-    end
-    return Base.getindex(x, Indices(tuple(indexarray...)...))
-end
-
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
@@ -77,6 +44,14 @@ end
 function Base.:-(A::AbstractTensor, B::AbstractTensor)
     return A + (-1*B)
 end
+
+struct IndexingOperation <: Operation
+    shape::Tuple{}
+    children::Tuple{AbstractTensor, Indices}
+    freeindices::Set{FreeIndex}
+end
+
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
 
 struct ComponentTensorIndex
     index::FreeIndex
@@ -105,4 +80,29 @@ end
 # Defaults to looping over the new index at the end
 function componentTensor(A::AbstractTensor, i::FreeIndex)
     return componentTensor(A, i, length(A.shape) + 1)
+end
+
+function Base.getindex(x::AbstractTensor, y::Indices)
+    if length(x.shape) != length(y.indices)
+        error("Invalid number of indices")
+    end
+    for i in 1:length(y.indices)
+        if x.shape[i] != y.indices[i].V
+            error("Invalid vector space")
+        end
+    end
+    return IndexingOperation(x, y)
+end
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+    return Base.getindex(x, Indices(ys...))
+end
+
+
+function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
+    indexarray = []
+    for i in 1:length(ys)
+        push!(indexarray, toindex(x.shape[i], ys[i]))
+    end
+    return Base.getindex(x, Indices(tuple(indexarray...)...))
 end
