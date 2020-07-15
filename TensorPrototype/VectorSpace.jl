@@ -32,3 +32,15 @@ dim(Vstar::DualVectorSpace) = Vstar.vectorSpace.dim
 dim(R::RnSpace) = R.dim
 
 Base.adjoint(V::AbstractVectorSpace) = dual(V)
+
+Base.show(io::IO, Vstar::DualVectorSpace) = print(io, Vstar', "*")
+
+Base.show(io::IO, R::RnSpace) = print(io,  "R^",dim(R))
+
+function Base.show(io::IO, V::VectorSpace)
+    if dim(V) == nothing
+        print(io, "V", "_", V.id)
+    else
+        print(io, "V", dim(V), "_", V.id)
+    end
+end
