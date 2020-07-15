@@ -103,51 +103,38 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     return Base.getindex(x, indexarray...)
 end
 
-IndexSumIndex(is::Vararg{Int}) = IndexSumIndex(is, ())
-
 struct IndexSumOperation <: Operation
     shape::Tuple{}
-    children::Tuple{AbstractTensor, Indices}
+    children::Tuple{IndexingOperation, Indices}
     freeindices::Set{FreeIndex}
 end
 
-IndexSumOperation(A::AbstractTensor, i::Index, freeindices::Set{FreeIndex}) = IndexSumOperation((), (A, Indices(i)), freeindices)
+IndexSumOperation(A::IndexingOperation, indices::Indices, freeindices::Set{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
 
-# Sums over i:s and i':s
-function indexsum(A::AbstractTensor, i::FreeIndex)
-    if A.shape != ()
-        error("Requires scalar") # TODO does it?
-    end
-    freeindices = setdiff(A.freeindices, [i, i'])
-    return IndexSumOperation(A, i, freeindices)
+# Sums over the indices in the given order
+function indexsum(A::IndexingOperation, indices::Vararg{FreeIndex})
+    freeindices = setdiff(A.freeindices, [i for i in indices], [i' for i in indices])
+    return IndexSumOperation(A, Indices(indices...), freeindices)
 end
 
-function tensorcontraction(A::IndexingOperation, B::IndexingOperation)
-    tocontract = []
-    # Find the indices to contract over
-    Aindices, Bindices = A.children[2].indices, B.children[2].indices
-    for i in 1:min(length(Aindices), length(Bindices))
-        if Aindices[end + 1 - i] == Bindices[i]'
-            push!(tocontract, Aindices[end + 1 - i])
-        else
-            break
+
+# TODO Is the recursive design a good idea?
+function getadjacentindices(indices::Vararg{FreeIndex})
+    for i in 2:length(indices)
+        if indices[i]' == indices[i-1]
+            return (indices[i-1], getadjacentindices(indices[1:(i-2)]..., indices[(i+1):end]...)...)
         end
     end
-    op = A⊗B
-    if length(tocontract) == 0
-        return op
-    end
-    # Sum over the contraction indices
-    for index in tocontract
-        op = indexsum(op, index)
-    end
-    # Create the component tensor of the remaining indices
-    for index in (Aindices[1:(end - length(tocontract))]..., Bindices[(length(tocontract)+1):end]...)
-        op = componentTensor(op, index)
-    end
-    return op
+    return ()
+end
+
+
+function tensorcontraction(A::IndexingOperation)
+    contractions = getadjacentindices(A.children[2].indices...)
+    remaining = setdiff(A.children[2].indices, contractions, [i' for i in contractions])
+    return componentTensor(indexsum(A, contractions...), remaining...)
 end
 
 function Base.:*(A::IndexingOperation, B::IndexingOperation)
-    return tensorcontraction(A, B)
+    return tensorcontraction(A⊗B)
 end
