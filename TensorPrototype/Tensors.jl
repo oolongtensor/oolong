@@ -2,6 +2,8 @@ include("Node.jl")
 include("VectorSpace.jl")
 include("Indices.jl")
 
+import Base
+
 abstract type AbstractTensor <: Node end
 
 struct ScalarVariable
@@ -55,3 +57,19 @@ struct MixedTensor <: AbstractTensor
         new(x, Vs,  (), ())
     end
 end
+
+function printtensor(io, s::String, A::AbstractTensor)
+    print(io, typeof(A), ", ", s, "shape: ")
+    if A.shape == ()
+        print(io, "()")
+    else
+        print(io, A.shape[1])
+        for V in A.shape[2:end]
+            print(io, "⊗ ",V)
+        end
+    end
+end
+
+Base.show(io::IO, A::Union{Tensor, MixedTensor}) = printtensor(io, string(A.value, ", "), A)
+
+Base.show(io::IO, A::VariableTensor) = printtensor(io, "", A)
