@@ -47,3 +47,18 @@ end
 function toindex(V::AbstractVectorSpace, i::Index)
     return i
 end
+
+Base.show(io::IO, indices::Indices) = print(indices.indices)
+
+function Base.show(io::IO, i::FreeIndex)
+    if i.id == 0
+        print(io, i.name)
+    else
+        print(io, "FreeIndex")
+    end
+    if i.V isa DualVectorSpace
+        print("*")
+    end
+end
+
+Base.show(io::IO, i::FixedIndex) = print(io, i.value)
