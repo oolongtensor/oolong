@@ -8,7 +8,7 @@ abstract type Operation <: AbstractTensor end
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 function Base.:+(nodes::Vararg{Node})
@@ -20,17 +20,17 @@ function Base.:+(nodes::Vararg{Node})
             end
         end
     end
-    return AddOperation(nodes[1].shape, nodes, union((node.freeindices for node=nodes)...))
+    return AddOperation(nodes[1].shape, nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  union(x.freeindices, y.freeindices))
+    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  tuple(union(x.freeindices, y.freeindices)...))
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
@@ -48,38 +48,27 @@ end
 struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
-
-struct ComponentTensorIndex <: Node
-    index::FreeIndex
-    loc::Int # The index of the new dimension
-    children::Tuple{}
-end
-
-ComponentTensorIndex(index::FreeIndex, loc::Int) = ComponentTensorIndex(index, loc, ())
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), tuple(union(x.freeindices, [i for i=indices.indices if i isa FreeIndex])...))
 
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, ComponentTensorIndex}
-    freeindices::Set{FreeIndex}
+    children::Tuple{AbstractTensor, Indices}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-function componentTensor(A::AbstractTensor, i::FreeIndex, loc::Int)
-    if !(i in A.freeindices)
-        error("The free index to loop over is not there")
+function componentTensor(A::AbstractTensor, indices::Vararg{Index})
+    if length(indices) == 0
+        return A
     end
-    shape = tuple(A.shape[1:(loc-1)]..., i.V, A.shape[loc:length(A.shape)]...)
-    ctindex = ComponentTensorIndex(i, loc)
-    freeindices = setdiff(A.freeindices, [i])
-    return ComponentTensorOperation(shape, (A, ctindex), freeindices)
-end
-
-# Defaults to looping over the new index at the end
-function componentTensor(A::AbstractTensor, i::FreeIndex)
-    return componentTensor(A, i, length(A.shape) + 1)
+    if !(indices ⊆ A.freeindices)
+        error("Not all indices are free indices")
+    end
+    shape = tuple(A.shape..., [i.V for i in indices]...)
+    freeindices = tuple(setdiff(A.freeindices, indices, [i' for i in indices])...)
+    return ComponentTensorOperation(shape, (A, Indices(indices...)), freeindices)
 end
 
 idcounter = 0
@@ -96,21 +85,13 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
             error("Invalid vector space")
         end
     end
-    if length(ys) < length(x.shape)
-        addedindices = []
-        global idcounter
-        for i in 1:(length(x.shape) - length(ys))
-            push!(addedindices, FreeIndex(x.shape[length(ys) + 1], "", idcounter))
-            idcounter += 1
-        end
-        op = IndexingOperation(x, Indices(ys..., addedindices...))
-        for i in 1:(length(x.shape) - length(ys))
-            op = componentTensor(op, addedindices[i])
-        end
-        return op
-    else
-        return IndexingOperation(x, Indices(ys...))
+    addedindices = []
+    global idcounter
+    for i in 1:(length(x.shape) - length(ys))
+        push!(addedindices, FreeIndex(x.shape[length(ys) + i], "", idcounter))
+        idcounter += 1
     end
+    return componentTensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
 end
 
 
@@ -121,3 +102,58 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     end
     return Base.getindex(x, indexarray...)
 end
+
+struct IndexSumOperation <: Operation
+    shape::Tuple{}
+    children::Tuple{AbstractTensor, Indices}
+    freeindices::Tuple{Vararg{FreeIndex}}
+end
+
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+
+# Sums over the indices in the given order
+function indexsum(A::AbstractTensor, indices::Vararg{FreeIndex})
+    if  A.shape != ()
+        error("Must be scalar") # TODO does it?
+    end
+    freeindices = tuple(setdiff(A.freeindices, [i for i in indices], [i' for i in indices])...)
+    return IndexSumOperation(A, Indices(indices...), freeindices...)
+end
+
+
+# TODO Is the recursive design a good idea?
+function getadjacentindices(indices::Vararg{FreeIndex})
+    for i in 2:length(indices)
+        if indices[i]' == indices[i-1]
+            return (indices[i-1], getadjacentindices(indices[1:(i-2)]..., indices[(i+1):end]...)...)
+        end
+    end
+    return ()
+end
+
+
+function tensorcontraction(A::AbstractTensor)
+    if A.shape != ()
+        error("Must be scalar") # TODO does it?
+    end
+    contractions = getadjacentindices(A.freeindices...)
+    remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
+    return componentTensor(indexsum(A, contractions...), remaining...)
+end
+
+function Base.:*(A::IndexingOperation, B::IndexingOperation)
+    return tensorcontraction(A⊗B)
+end
+
+function Base.show(io::IO, op::Operation, depth::Int)
+    println(io, ["\t" for i in 1:depth]..., typeof(op))
+    for child in op.children
+        if child isa Operation
+            Base.show(io, child, depth + 1)
+        else
+            println(io, ["\t" for i in 1:(depth+1)]..., child)
+        end
+    end
+end
+
+Base.show(io::IO, op::Operation) = Base.show(io, op, 0)
