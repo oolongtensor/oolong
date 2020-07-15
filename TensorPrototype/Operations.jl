@@ -60,6 +60,9 @@ struct ComponentTensorOperation <: Operation
 end
 
 function componentTensor(A::AbstractTensor, indices::Vararg{Index})
+    if length(indices) == 0
+        return A
+    end
     if !(indices ⊆ A.freeindices)
         error("Not all indices are free indices")
     end
@@ -82,21 +85,13 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
             error("Invalid vector space")
         end
     end
-    if length(ys) < length(x.shape)
-        addedindices = []
-        global idcounter
-        for i in 1:(length(x.shape) - length(ys))
-            push!(addedindices, FreeIndex(x.shape[length(ys) + 1], "", idcounter))
-            idcounter += 1
-        end
-        op = IndexingOperation(x, Indices(ys..., addedindices...))
-        for i in 1:(length(x.shape) - length(ys))
-            op = componentTensor(op, addedindices[i])
-        end
-        return op
-    else
-        return IndexingOperation(x, Indices(ys...))
+    addedindices = []
+    global idcounter
+    for i in 1:(length(x.shape) - length(ys))
+        push!(addedindices, FreeIndex(x.shape[length(ys) + i], "", idcounter))
+        idcounter += 1
     end
+    return componentTensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
 end
 
 

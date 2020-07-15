@@ -29,6 +29,7 @@ E = VariableTensor(V2', V3', Vi)
         @test_throws ErrorException A[x, x]
         @test A[x].shape == (V2,)
         @test A[x] isa ComponentTensorOperation
+        @test E[y'].shape == (V3', Vi)
     end
     @testset "Outer product" begin
         @test (A⊗B).shape == (V3, V2, V3, V2)
@@ -41,7 +42,9 @@ E = VariableTensor(V2', V3', Vi)
     @testset "Component tensor" begin
         @test componentTensor(A[x, 1], x).shape == (V3,)
         @test componentTensor(A[x, y], y).shape == (V2,)
-        @test componentTensor(componentTensor(A[x, y], y), x).shape == (V2, V3)
+        @test componentTensor(A[x, y], y, x).shape == (V2, V3)
+        @test componentTensor(E[y', x', z], x', z).shape == (V3', Vi)
+        @test componentTensor(E[y', x', z], x', z).freeindices == Set([y'])
     end
     @testset "Index sum" begin
         @test indexsum(C[w, z, z'], z).shape == ()
