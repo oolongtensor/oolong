@@ -141,28 +141,30 @@ function indexsum(A::AbstractTensor, i::FreeIndex)
     return IndexSumOperation(A, i, freeindices)
 end
 
-function tensorcontraction(A::IndexingOperation, B::IndexingOperation, i::FreeIndex)
-    op = indexsum(A⊗B, i)
-    for index in (A.children[2].indices..., B.children[2].indices...)
-        if index != i && index in op.freeindices
-            op = componentTensor(op, index)
-        end
-    end
-    return op
-end
-
 function tensorcontraction(A::IndexingOperation, B::IndexingOperation)
-    tocontract = nothing
-    for i in A.children[2].indices
-        if i' in B.children[2].indices
-            tocontract = i
+    tocontract = []
+    # Find the indices to contract over
+    Aindices, Bindices = A.children[2].indices, B.children[2].indices
+    for i in 1:min(length(Aindices), length(Bindices))
+        if Aindices[end + 1 - i] == Bindices[i]'
+            push!(tocontract, Aindices[end + 1 - i])
+        else
             break
         end
     end
-    if tocontract == nothing
-        return A⊗B
+    op = A⊗B
+    if length(tocontract) == 0
+        return op
     end
-    return tensorcontraction(A, B, tocontract)
+    # Sum over the contraction indices
+    for index in tocontract
+        op = indexsum(op, index)
+    end
+    # Create the component tensor of the remaining indices
+    for index in (Aindices[1:(end - length(tocontract))]..., Bindices[(length(tocontract)+1):end]...)
+        op = componentTensor(op, index)
+    end
+    return op
 end
 
 function Base.:*(A::IndexingOperation, B::IndexingOperation)

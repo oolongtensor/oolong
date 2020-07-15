@@ -15,6 +15,7 @@ A = VariableTensor(V3, V2)
 B = Tensor(fill(1.2, (3, 2)), V3, V2)
 C = VariableTensor(Vj, Vi, Vi')
 D = VariableTensor(V2', Vi)
+E = VariableTensor(V2', V3', Vi)
 @testset "Operations" begin
     @testset "Addition" begin
         @test (A + B).shape == A.shape
@@ -49,5 +50,6 @@ D = VariableTensor(V2', Vi)
     end
     @testset "Tensor contraction" begin
         @test (A[x, y]*D[y', z]).shape == (V3, Vi)
+        @test (A[x, y]*E[y', x', z]).shape == (Vi,)
     end
 end
