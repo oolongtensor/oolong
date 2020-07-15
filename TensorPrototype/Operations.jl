@@ -53,33 +53,19 @@ end
 
 IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
 
-struct ComponentTensorIndex <: Node
-    index::FreeIndex
-    loc::Int # The index of the new dimension
-    children::Tuple{}
-end
-
-ComponentTensorIndex(index::FreeIndex, loc::Int) = ComponentTensorIndex(index, loc, ())
-
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, ComponentTensorIndex}
+    children::Tuple{AbstractTensor, Indices}
     freeindices::Set{FreeIndex}
 end
 
-function componentTensor(A::AbstractTensor, i::FreeIndex, loc::Int)
-    if !(i in A.freeindices)
-        error("The free index to loop over is not there")
+function componentTensor(A::AbstractTensor, indices::Vararg{Index})
+    if !(indices ⊆ A.freeindices)
+        error("Not all indices are free indices")
     end
-    shape = tuple(A.shape[1:(loc-1)]..., i.V, A.shape[loc:length(A.shape)]...)
-    ctindex = ComponentTensorIndex(i, loc)
-    freeindices = setdiff(A.freeindices, [i])
-    return ComponentTensorOperation(shape, (A, ctindex), freeindices)
-end
-
-# Defaults to looping over the new index at the end
-function componentTensor(A::AbstractTensor, i::FreeIndex)
-    return componentTensor(A, i, length(A.shape) + 1)
+    shape = tuple(A.shape..., [i.V for i in indices]...)
+    freeindices = setdiff(A.freeindices, indices)
+    return ComponentTensorOperation(shape, (A, Indices(indices...)), freeindices)
 end
 
 idcounter = 0
