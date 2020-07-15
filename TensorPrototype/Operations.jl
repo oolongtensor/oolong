@@ -8,7 +8,7 @@ abstract type Operation <: AbstractTensor end
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 function Base.:+(nodes::Vararg{Node})
@@ -20,17 +20,17 @@ function Base.:+(nodes::Vararg{Node})
             end
         end
     end
-    return AddOperation(nodes[1].shape, nodes, union((node.freeindices for node=nodes)...))
+    return AddOperation(nodes[1].shape, nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  union(x.freeindices, y.freeindices))
+    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  tuple(union(x.freeindices, y.freeindices)...))
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
@@ -48,15 +48,15 @@ end
 struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), union(Set([i for i=indices.indices if i isa FreeIndex]), x.freeindices))
+IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), tuple(union(x.freeindices, [i for i=indices.indices if i isa FreeIndex])...))
 
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 function componentTensor(A::AbstractTensor, indices::Vararg{Index})
@@ -67,7 +67,7 @@ function componentTensor(A::AbstractTensor, indices::Vararg{Index})
         error("Not all indices are free indices")
     end
     shape = tuple(A.shape..., [i.V for i in indices]...)
-    freeindices = setdiff(A.freeindices, indices)
+    freeindices = tuple(setdiff(A.freeindices, indices, [i' for i in indices])...)
     return ComponentTensorOperation(shape, (A, Indices(indices...)), freeindices)
 end
 
@@ -106,14 +106,14 @@ end
 struct IndexSumOperation <: Operation
     shape::Tuple{}
     children::Tuple{IndexingOperation, Indices}
-    freeindices::Set{FreeIndex}
+    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexSumOperation(A::IndexingOperation, indices::Indices, freeindices::Set{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+IndexSumOperation(A::IndexingOperation, indices::Indices, freeindices::Tuple{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
 
 # Sums over the indices in the given order
 function indexsum(A::IndexingOperation, indices::Vararg{FreeIndex})
-    freeindices = setdiff(A.freeindices, [i for i in indices], [i' for i in indices])
+    freeindices = tuple(setdiff(A.freeindices, [i for i in indices], [i' for i in indices])...)
     return IndexSumOperation(A, Indices(indices...), freeindices)
 end
 
@@ -131,7 +131,7 @@ end
 
 function tensorcontraction(A::IndexingOperation)
     contractions = getadjacentindices(A.children[2].indices...)
-    remaining = setdiff(A.children[2].indices, contractions, [i' for i in contractions])
+    remaining = tuple(setdiff(A.children[2].indices, contractions, [i' for i in contractions])...)
     return componentTensor(indexsum(A, contractions...), remaining...)
 end
 

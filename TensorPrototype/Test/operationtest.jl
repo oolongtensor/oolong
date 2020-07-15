@@ -20,12 +20,12 @@ E = VariableTensor(V2', V3', Vi)
     @testset "Addition" begin
         @test (A + B).shape == A.shape
         @test (A + B).children == (A, B)
-        @test (A[x,1] + B[1, y]).freeindices == Set([x, y])
+        @test (A[x,1] + B[1, y]).freeindices == (x, y)
         @test_throws ErrorException A[x, y] + B
     end
     @testset "Index" begin
         @test A[x, 1].shape == ()
-        @test A[x, 1].freeindices == Set([x])
+        @test A[x, 1].freeindices == (x,)
         @test_throws ErrorException A[x, x]
         @test A[x].shape == (V2,)
         @test A[x] isa ComponentTensorOperation
@@ -34,7 +34,7 @@ E = VariableTensor(V2', V3', Vi)
     @testset "Outer product" begin
         @test (A⊗B).shape == (V3, V2, V3, V2)
         @test (A⊗B).children == (A, B)
-        @test (A[x,1] ⊗ B[1, y]).freeindices == Set([x, y])
+        @test (A[x,1] ⊗ B[1, y]).freeindices == (x, y)
         @test (A - B).shape == (V3, V2)
         @test (-B).shape == (V3, V2)
         @test (A - B) isa AddOperation
@@ -44,11 +44,11 @@ E = VariableTensor(V2', V3', Vi)
         @test componentTensor(A[x, y], y).shape == (V2,)
         @test componentTensor(A[x, y], y, x).shape == (V2, V3)
         @test componentTensor(E[y', x', z], x', z).shape == (V3', Vi)
-        @test componentTensor(E[y', x', z], x', z).freeindices == Set([y'])
+        @test componentTensor(E[y', x', z], x', z).freeindices == (y',)
     end
     @testset "Index sum" begin
         @test indexsum(C[w, z, z'], z).shape == ()
-        @test indexsum(C[w, z, z'], z).freeindices == Set([w])
+        @test indexsum(C[w, z, z'], z).freeindices == (w,)
         @test indexsum(C[w, z, z'], z).children[2] == Indices(z)
     end
     @testset "Tensor contraction" begin
