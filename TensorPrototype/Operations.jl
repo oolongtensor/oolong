@@ -105,16 +105,19 @@ end
 
 struct IndexSumOperation <: Operation
     shape::Tuple{}
-    children::Tuple{IndexingOperation, Indices}
+    children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexSumOperation(A::IndexingOperation, indices::Indices, freeindices::Tuple{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
 
 # Sums over the indices in the given order
-function indexsum(A::IndexingOperation, indices::Vararg{FreeIndex})
+function indexsum(A::AbstractTensor, indices::Vararg{FreeIndex})
+    if  A.shape != ()
+        error("Must be scalar") # TODO does it?
+    end
     freeindices = tuple(setdiff(A.freeindices, [i for i in indices], [i' for i in indices])...)
-    return IndexSumOperation(A, Indices(indices...), freeindices)
+    return IndexSumOperation(A, Indices(indices...), freeindices...)
 end
 
 
@@ -129,9 +132,12 @@ function getadjacentindices(indices::Vararg{FreeIndex})
 end
 
 
-function tensorcontraction(A::IndexingOperation)
-    contractions = getadjacentindices(A.children[2].indices...)
-    remaining = tuple(setdiff(A.children[2].indices, contractions, [i' for i in contractions])...)
+function tensorcontraction(A::AbstractTensor)
+    if A.shape != ()
+        error("Must be scalar") # TODO does it?
+    end
+    contractions = getadjacentindices(A.freeindices...)
+    remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
     return componentTensor(indexsum(A, contractions...), remaining...)
 end
 

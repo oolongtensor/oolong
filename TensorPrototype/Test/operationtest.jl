@@ -53,9 +53,9 @@ E = VariableTensor(V2', V3', Vi)
     end
     @testset "Tensor contraction" begin
         @test (A[x, y]*D[y', z]).shape == (V3, Vi)
-        @test (A[x, y]*D[y', z]).freeindices == Set()
+        @test (A[x, y]*D[y', z]).freeindices == ()
         @test (A[x, y]*E[y', x', z]).shape == (Vi,)
-        @test (A[x, y]*E[y', x', z]).freeindices == Set()
+        @test (A[x, y]*E[y', x', z]).freeindices == ()
         @test tensorcontraction(C[w, z, z']).shape == (Vj,)
     end
     @testset "Adjacent indices" begin
