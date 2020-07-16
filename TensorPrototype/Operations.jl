@@ -137,6 +137,7 @@ function tensorcontraction(A::AbstractTensor)
     end
     contractions = getadjacentindices(A.freeindices...)
     remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
+    # TODO remove index sum if no repeated indices
     return componenttensor(indexsum(A, contractions...), remaining...)
 end
 
