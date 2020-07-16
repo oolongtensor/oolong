@@ -15,8 +15,7 @@ function Base.:+(nodes::Vararg{Node})
     if length(nodes) > 1
         for node in nodes[2:length(nodes)]
             if node.shape != nodes[1].shape
-                # TODO: Better error message
-                error("Shapes don't match")
+                throw(DimensionMismatch(string("Shapes ", nodes[1].shape, " and ", node.shape, " don't match")))
             end
         end
     end
@@ -78,7 +77,7 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
         return x
     end
     if length(x.shape) < length(ys)
-        BoundsError(x.shape, ys)
+        throw(BoundsError(x.shape, ys))
     end
     for i in 1:length(ys)
         if x.shape[i] != ys[i].V
