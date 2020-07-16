@@ -65,3 +65,7 @@ E = VariableTensor(V2', V3', Vi)
         @test getadjacentindices(x, y, y', x', z, z') == (y, x, z)
     end
 end
+@testset "Tensors" begin
+    @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
+    @test_throws DomainError Tensor([1, 2], VectorSpace(3))
+end
