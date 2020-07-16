@@ -26,7 +26,7 @@ E = VariableTensor(V2', V3', Vi)
     @testset "Index" begin
         @test A[x, 1].shape == ()
         @test A[x, 1].freeindices == (x,)
-        @test_throws ErrorException A[x, x]
+        @test_throws DimensionMismatch A[x, x]
         @test A[x].shape == (V2,)
         @test A[x] isa ComponentTensorOperation
         @test E[y'].shape == (V3', Vi)

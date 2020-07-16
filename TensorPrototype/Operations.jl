@@ -78,11 +78,11 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
         return x
     end
     if length(x.shape) < length(ys)
-        error("Too many indices")
+        BoundsError(x.shape, ys)
     end
     for i in 1:length(ys)
         if x.shape[i] != ys[i].V
-            error("Invalid vector space")
+            throw(DimensionMismatch(string(ys[i], " is not in the vector space ", x.shape[i])))
         end
     end
     addedindices = []
