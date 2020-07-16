@@ -38,13 +38,21 @@ struct Tensor{T<:Scalar} <: AbstractTensor
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
-    freeindices::Tuple{Vararg{FreeIndex}}
+    freeindices::Tuple{}
     # TODO Check x consists of scalars, if possible
     function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where (T<:Scalar)
         checktensordimensions(x, Vs...)
         new{T}(x, Vs, (), ())
     end
 end
+
+struct DeltaTensor <: AbstractTensor
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
 
 struct MixedTensor <: AbstractTensor
     value::AbstractArray
@@ -72,4 +80,4 @@ end
 
 Base.show(io::IO, A::Union{Tensor, MixedTensor}) = printtensor(io, string(A.value, ", "), A)
 
-Base.show(io::IO, A::VariableTensor) = printtensor(io, "", A)
+Base.show(io::IO, A::Union{VariableTensor, DeltaTensor}) = printtensor(io, "", A)
