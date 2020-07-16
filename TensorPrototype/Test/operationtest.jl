@@ -40,12 +40,12 @@ E = VariableTensor(V2', V3', Vi)
         @test (A - B) isa AddOperation
     end
     @testset "Component tensor" begin
-        @test componentTensor(A[x, 1], x).shape == (V3,)
-        @test componentTensor(A[x, y], y).shape == (V2,)
-        @test componentTensor(A[x, y], y, x).shape == (V2, V3)
-        @test componentTensor(E[y', x', z], x', z).shape == (V3', Vi)
-        @test componentTensor(E[y', x', z], x', z).freeindices == (y',)
-        @test_throws DomainError componentTensor(A[x, y], x, z)
+        @test componenttensor(A[x, 1], x).shape == (V3,)
+        @test componenttensor(A[x, y], y).shape == (V2,)
+        @test componenttensor(A[x, y], y, x).shape == (V2, V3)
+        @test componenttensor(E[y', x', z], x', z).shape == (V3', Vi)
+        @test componenttensor(E[y', x', z], x', z).freeindices == (y',)
+        @test_throws DomainError componenttensor(A[x, y], x, z)
     end
     @testset "Index sum" begin
         @test indexsum(C[w, z, z'], z).shape == ()

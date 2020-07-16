@@ -58,7 +58,7 @@ struct ComponentTensorOperation <: Operation
     freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-function componentTensor(A::AbstractTensor, indices::Vararg{Index})
+function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     if length(indices) == 0
         return A
     end
@@ -90,7 +90,7 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
         push!(addedindices, FreeIndex(x.shape[length(ys) + i], "", idcounter))
         idcounter += 1
     end
-    return componentTensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
+    return componenttensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
 end
 
 
@@ -137,7 +137,7 @@ function tensorcontraction(A::AbstractTensor)
     end
     contractions = getadjacentindices(A.freeindices...)
     remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
-    return componentTensor(indexsum(A, contractions...), remaining...)
+    return componenttensor(indexsum(A, contractions...), remaining...)
 end
 
 function Base.:*(A::IndexingOperation, B::IndexingOperation)

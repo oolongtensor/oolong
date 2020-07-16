@@ -17,7 +17,7 @@ end
 VectorSpace() = VectorSpace(nothing)
 
 struct DualVectorSpace <: AbstractVectorSpace
-    vectorSpace::AbstractVectorSpace
+    vectorspace::AbstractVectorSpace
 end
 
 struct RnSpace <: AbstractVectorSpace
@@ -25,10 +25,10 @@ struct RnSpace <: AbstractVectorSpace
 end
 
 dual(V::VectorSpace) = DualVectorSpace(V)
-dual(Vstar::DualVectorSpace) = Vstar.vectorSpace
+dual(Vstar::DualVectorSpace) = Vstar.vectorspace
 dual(R::RnSpace) = R
 dim(V::VectorSpace) = V.dim
-dim(Vstar::DualVectorSpace) = Vstar.vectorSpace.dim
+dim(Vstar::DualVectorSpace) = Vstar.vectorspace.dim
 dim(R::RnSpace) = R.dim
 
 Base.adjoint(V::AbstractVectorSpace) = dual(V)
