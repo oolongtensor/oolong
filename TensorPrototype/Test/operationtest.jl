@@ -45,6 +45,7 @@ E = VariableTensor(V2', V3', Vi)
         @test componentTensor(A[x, y], y, x).shape == (V2, V3)
         @test componentTensor(E[y', x', z], x', z).shape == (V3', Vi)
         @test componentTensor(E[y', x', z], x', z).freeindices == (y',)
+        @test_throws DomainError componentTensor(A[x, y], x, z)
     end
     @testset "Index sum" begin
         @test indexsum(C[w, z, z'], z).shape == ()

@@ -64,7 +64,7 @@ function componentTensor(A::AbstractTensor, indices::Vararg{Index})
         return A
     end
     if !(indices ⊆ A.freeindices)
-        error("Not all indices are free indices")
+        throw(DomainError(string("The free indices ", indices, " are not a subset of ", A.freeindices)))
     end
     shape = tuple(A.shape..., [i.V for i in indices]...)
     freeindices = tuple(setdiff(A.freeindices, indices, [i' for i in indices])...)
