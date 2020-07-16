@@ -24,11 +24,11 @@ VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, (), (
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
     elseif ndims(x) != length(Vs)
-        error("Wrong number of vector spaces")
+        throw(DomainError((x, Vs) , string(x, " does not  fit into the tensor space ", Vs)))
     else
         for i in 1:ndims(x)
             if size(x)[i] != dim(Vs[i])
-                error("Dimension does not match with vector space rank")
+                throw(DomainError(Vs[i], string("Dimension ",i,  " of ", x," does not match with vector space rank")))
             end
         end
     end
