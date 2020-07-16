@@ -69,3 +69,6 @@ end
     @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
     @test_throws DomainError Tensor([1, 2], VectorSpace(3))
 end
+@testset "Indices" begin
+    @test_throws DomainError FixedIndex(VectorSpace(4), 5)
+end
