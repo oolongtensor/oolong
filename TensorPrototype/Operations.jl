@@ -114,7 +114,7 @@ IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeI
 # Sums over the indices in the given order
 function indexsum(A::AbstractTensor, indices::Vararg{FreeIndex})
     if  A.shape != ()
-        error("Must be scalar") # TODO does it?
+        throw(DomainError(A, "Must be scalar")) # TODO does it?
     end
     freeindices = tuple(setdiff(A.freeindices, [i for i in indices], [i' for i in indices])...)
     return IndexSumOperation(A, Indices(indices...), freeindices...)
@@ -134,7 +134,7 @@ end
 
 function tensorcontraction(A::AbstractTensor)
     if A.shape != ()
-        error("Must be scalar") # TODO does it?
+        throw(DomainError(A, "Must be scalar")) # TODO does it?
     end
     contractions = getadjacentindices(A.freeindices...)
     remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
