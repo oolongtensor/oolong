@@ -32,6 +32,9 @@ struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
+        return contractioncheck(new(shape, children, freeindices))
+    end
 end
 
 function Base.:+(nodes::Vararg{Node})
