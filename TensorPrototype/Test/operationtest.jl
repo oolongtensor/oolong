@@ -64,4 +64,5 @@ end
 end
 @testset "Indices" begin
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
+    @test_throws DomainError FixedIndex(VectorSpace(), 5)
 end
