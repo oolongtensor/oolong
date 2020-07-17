@@ -54,6 +54,14 @@ end
 
 DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
 
+struct ZeroTensor <: AbstractTensor
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
+
 struct MixedTensor <: AbstractTensor
     value::AbstractArray
     shape::Tuple{Vararg{AbstractVectorSpace}}
@@ -80,4 +88,4 @@ end
 
 Base.show(io::IO, A::Union{Tensor, MixedTensor}) = printtensor(io, string(A.value, ", "), A)
 
-Base.show(io::IO, A::Union{VariableTensor, DeltaTensor}) = printtensor(io, "", A)
+Base.show(io::IO, A::Union{VariableTensor, DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
