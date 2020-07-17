@@ -47,23 +47,14 @@ E = VariableTensor(V2', V3', Vi)
         @test componenttensor(E[y', x', z], x', z).freeindices == (y',)
         @test_throws DomainError componenttensor(A[x, y], x, z)
     end
-    @testset "Index sum" begin
-        @test indexsum(C[w, z, z'], z).shape == ()
-        @test indexsum(C[w, z, z'], z).freeindices == (w,)
-        @test indexsum(C[w, z, z'], z).children[2] == Indices(z)
-    end
     @testset "Tensor contraction" begin
-        @test (A[x, y]*D[y', z]).shape == (V3, Vi)
-        @test (A[x, y]*D[y', z]).freeindices == ()
-        @test (A[x, y]*E[y', x', z]).shape == (Vi,)
-        @test (A[x, y]*E[y', x', z]).freeindices == ()
-        @test tensorcontraction(C[w, z, z']).shape == (Vj,)
-    end
-    @testset "Adjacent indices" begin
-        @test getadjacentindices(x, x', y, z) == (x,)
-        @test getadjacentindices(x, y, y', x') == (y, x)
-        @test length(getadjacentindices(x, y,z, y', x')) == 0
-        @test getadjacentindices(x, y, y', x', z, z') == (y, x, z)
+        @test (A[x, y]*D[y', z]).shape == ()
+        @test (A[x, y]*D[y', z]).freeindices == (x, z)
+        @test (A[x, y]*E[y', x', z]).shape == ()
+        @test (A[x, y]*E[y', x', z]).freeindices == (z,)
+        @test componenttensor(C[w, z, z'], w).shape == (Vj,)
+        @test C[w, z, z'].freeindices == (w,)
+        @test C[w, z, z'].children[2] == Indices(z)
     end
 end
 @testset "Tensors" begin

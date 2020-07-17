@@ -5,6 +5,29 @@ import Base
 
 abstract type Operation <: AbstractTensor end
 
+struct IndexSumOperation <: Operation
+    shape::Tuple{}
+    children::Tuple{AbstractTensor, Indices}
+    freeindices::Tuple{Vararg{FreeIndex}}
+end
+
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+
+#  Check if we have have an upper and lower index - if so, repeat them
+function contractioncheck(A::AbstractTensor)
+    contractionindices = []
+    for (i, index) in enumerate(A.freeindices)
+        if index' in A.freeindices[(i+1):end]
+            push!(contractionindices, index)
+        end
+    end
+    if isempty(contractionindices)
+        return A
+    end
+    freeindices = tuple(setdiff(A.freeindices, [i for i in contractionindices], [i' for i in contractionindices])...)
+    return IndexSumOperation(A, Indices(contractionindices...), freeindices...)
+end
+
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
@@ -26,10 +49,20 @@ struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
+        return contractioncheck(new(shape, children, freeindices))
+    end
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  tuple(union(x.freeindices, y.freeindices)...))
+end
+
+function Base.:*(A::AbstractTensor, B::AbstractTensor)
+    if !isempty(A.shape) || !isempty(B.shape)
+        throw(DomainError(string(A , " or ", B, " is not a scalar")))
+    end
+    return A⊗B
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
@@ -48,9 +81,10 @@ struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function IndexingOperation(x::AbstractTensor, indices::Indices)
+        return contractioncheck(new((),(x, indices), tuple(union(x.freeindices, [i for i=indices.indices if i isa FreeIndex])...)))
+    end
 end
-
-IndexingOperation(x::AbstractTensor, indices::Indices) = IndexingOperation((),(x, indices), tuple(union(x.freeindices, [i for i=indices.indices if i isa FreeIndex])...))
 
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
@@ -93,56 +127,12 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
     return componenttensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
 end
 
-
 function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     indexarray = []
     for i in 1:length(ys)
         push!(indexarray, toindex(x.shape[i], ys[i]))
     end
     return Base.getindex(x, indexarray...)
-end
-
-struct IndexSumOperation <: Operation
-    shape::Tuple{}
-    children::Tuple{AbstractTensor, Indices}
-    freeindices::Tuple{Vararg{FreeIndex}}
-end
-
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
-
-# Sums over the indices in the given order
-function indexsum(A::AbstractTensor, indices::Vararg{FreeIndex})
-    if  A.shape != ()
-        throw(DomainError(A, "Must be scalar")) # TODO does it?
-    end
-    freeindices = tuple(setdiff(A.freeindices, [i for i in indices], [i' for i in indices])...)
-    return IndexSumOperation(A, Indices(indices...), freeindices...)
-end
-
-
-# TODO Is the recursive design a good idea?
-function getadjacentindices(indices::Vararg{FreeIndex})
-    for i in 2:length(indices)
-        if indices[i]' == indices[i-1]
-            return (indices[i-1], getadjacentindices(indices[1:(i-2)]..., indices[(i+1):end]...)...)
-        end
-    end
-    return ()
-end
-
-
-function tensorcontraction(A::AbstractTensor)
-    if A.shape != ()
-        throw(DomainError(A, "Must be scalar")) # TODO does it?
-    end
-    contractions = getadjacentindices(A.freeindices...)
-    remaining = tuple(setdiff(A.freeindices, contractions, [i' for i in contractions])...)
-    # TODO remove index sum if no repeated indices
-    return componenttensor(indexsum(A, contractions...), remaining...)
-end
-
-function Base.:*(A::IndexingOperation, B::IndexingOperation)
-    return tensorcontraction(A⊗B)
 end
 
 function Base.show(io::IO, op::Operation, depth::Int)
