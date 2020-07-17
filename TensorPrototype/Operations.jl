@@ -55,7 +55,7 @@ struct OuterProductOperation <: Operation
 end
 
 function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation(tuple(x.shape..., y.shape...), (x, y),  tuple(union(x.freeindices, y.freeindices)...))
+    return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
 function Base.:*(A::AbstractTensor, B::AbstractTensor)
@@ -82,7 +82,7 @@ struct IndexingOperation <: Operation
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),(x, indices), tuple(union(x.freeindices, [i for i=indices.indices if i isa FreeIndex])...)))
+        return contractioncheck(new((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
     end
 end
 
