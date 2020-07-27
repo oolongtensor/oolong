@@ -14,11 +14,11 @@ Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
 
 struct VariableTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
-    # Field information?
     function VariableTensor(shape::Vararg{AbstractVectorSpace})
-        tensor = new(shape, ())
-        add_edge!(tensor)
+        node = new(shape, preparegraph(), ())
+        addnodetograph(node)
     end
 end
 
@@ -43,7 +43,8 @@ struct Tensor{T<:Scalar} <: AbstractTensor
     # TODO Check x consists of scalars, if possible
     function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where (T<:Scalar)
         checktensordimensions(x, Vs...)
-        new{T}(x, Vs, (), ())
+        node = new{T}(x, Vs, preparegraph(), ())
+        addnodetograph(node)
     end
 end
 
@@ -51,17 +52,21 @@ struct DeltaTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     index::Int
     freeindices::Tuple{}
+    function DeltaTensor(shape::Vararg{AbstractVectorSpace})
+        node = new(shape, preparegraph(), ())
+        addnodetograph(node)
+    end
 end
-
-DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
 
 struct ZeroTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     index::Int
     freeindices::Tuple{}
+    function ZeroTensor(shape::Vararg{AbstractVectorSpace})
+        node = new(shape, preparegraph(), ())
+        addnodetograph(node)
+    end
 end
-
-ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
 
 struct MixedTensor <: AbstractTensor
     value::AbstractArray
@@ -71,7 +76,8 @@ struct MixedTensor <: AbstractTensor
     # TODO Check x consists of scalars, if possible
     function MixedTensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
         checktensordimensions(x, Vs...)
-        new(x, Vs,  (), ())
+        node = new(x, Vs, preparegraph(), ())
+        addnodetograph(node)
     end
 end
 

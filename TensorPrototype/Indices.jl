@@ -30,10 +30,12 @@ Base.adjoint(i::FixedIndex) = FixedIndex(dual(i.V), i.value)
 
 struct Indices <: Node
     indices
-    children
+    index::Int
+    function Indices(indices::Vararg{Index})
+        node = new(indices, preparegraph())
+        addnodetograph(node)
+    end
 end
-
-Indices(indices::Vararg{Index}) = Indices(indices, ())
 
 function toindex(V::AbstractVectorSpace, i::Int)
     return FixedIndex(V, i)

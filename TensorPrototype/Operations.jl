@@ -7,8 +7,12 @@ abstract type Operation <: AbstractTensor end
 
 struct IndexSumOperation <: Operation
     shape::Tuple{}
-    children::Tuple{AbstractTensor, Indices}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
+    function IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex})
+        node = new((), preparegraph(A, indices), freeindices)
+        addnodetograph(node)
+    end
 end
 
 IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
@@ -30,10 +34,12 @@ end
 
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{Vararg{AbstractTensor}}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
     function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+        node = new(shape, preparegraph(children...), freeindices)
+        addnodetograph(node)
+        return contractioncheck(node)
     end
 end
 
@@ -50,10 +56,12 @@ end
 
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, AbstractTensor}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
     function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+        node = new(shape, preparegraph(children...), freeindices)
+        addnodetograph(node)
+        return contractioncheck(node)
     end
 end
 
@@ -82,17 +90,23 @@ end
 
 struct IndexingOperation <: Operation
     shape::Tuple{}
-    children::Tuple{AbstractTensor, Indices}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
+        node = new((), preparegraph(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...))
+        addnodetograph(node)
+        return contractioncheck(node)
     end
 end
 
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{AbstractTensor, Indices}
+    index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
+    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
+        node = new(shape, preparegraph(children...), freeindices)
+        addnodetograph(node)
+    end
 end
 
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
@@ -140,7 +154,7 @@ end
 
 function Base.show(io::IO, op::Operation, depth::Int)
     println(io, ["\t" for i in 1:depth]..., typeof(op))
-    for child in op.children
+    for child in children(op)
         if child isa Operation
             Base.show(io, child, depth + 1)
         else
