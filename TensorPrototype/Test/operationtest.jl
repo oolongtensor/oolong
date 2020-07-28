@@ -23,6 +23,7 @@ E = VariableTensor(V2', V3', Vi)
         @test (A[x,1] + B[1, y]).freeindices == (x, y)
         @test_throws DimensionMismatch A[x, y] + B
         @test (A[x, y] + D[y', z]).freeindices == (x,z)
+        @test children(A + A) == [A, A]
     end
     @testset "Index" begin
         @test A[x, 1].shape == ()
