@@ -9,9 +9,10 @@ struct IndexSumOperation <: Operation
     shape::Tuple{}
     children::Array{Node, 1}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), [A, indices], freeindices)
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), [A, indices], freeindices, getcounter())
 
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
@@ -32,8 +33,9 @@ struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Array{AbstractTensor, 1}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
     function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, [children...], freeindices))
+        return contractioncheck(new(shape, [children...], freeindices, getcounter()))
     end
 end
 
@@ -52,8 +54,9 @@ struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Array{AbstractTensor, 1}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
     function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, [children...], freeindices))
+        return contractioncheck(new(shape, [children...], freeindices, getcounter()))
     end
 end
 
@@ -84,8 +87,9 @@ struct IndexingOperation <: Operation
     shape::Tuple{}
     children::Array{Node, 1}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),[x, indices], tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
+        return contractioncheck(new((),[x, indices], tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...), getcounter()))
     end
 end
 
@@ -93,7 +97,10 @@ struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Array{Node, 1}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
 end
+
+ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, A::AbstractTensor, indices::Indices, freeindices::Tuple{Vararg{FreeIndex}}) = ComponentTensorOperation(shape, [A, indices], freeindices, getcounter())
 
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     if length(indices) == 0
@@ -104,7 +111,7 @@ function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     end
     shape = tuple(A.shape..., [i.V for i in indices]...)
     freeindices = tuple(setdiff(A.freeindices, indices, [i' for i in indices])...)
-    return ComponentTensorOperation(shape, [A, Indices(indices...)], freeindices)
+    return ComponentTensorOperation(shape, A, Indices(indices...), freeindices)
 end
 
 idcounter = 0

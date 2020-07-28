@@ -16,10 +16,11 @@ struct VariableTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
     # Field information?
 end
 
-VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, (), ())
+VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, (), (),  getcounter())
 
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
@@ -39,10 +40,11 @@ struct Tensor{T<:Scalar} <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
+    index::Int
     # TODO Check x consists of scalars, if possible
     function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where (T<:Scalar)
         checktensordimensions(x, Vs...)
-        new{T}(x, Vs, (), ())
+        new{T}(x, Vs, (), (), getcounter())
     end
 end
 
@@ -50,27 +52,30 @@ struct DeltaTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
+    index::Int
 end
 
-DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
+DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), (), getcounter())
 
 struct ZeroTensor <: AbstractTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
+    index::Int
 end
 
-ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
+ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), (), getcounter())
 
 struct MixedTensor <: AbstractTensor
     value::AbstractArray
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{Vararg{FreeIndex}}
+    index::Int
     # TODO Check x consists of scalars, if possible
     function MixedTensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
         checktensordimensions(x, Vs...)
-        new(x, Vs,  (), ())
+        new(x, Vs,  (), (), getcounter())
     end
 end
 
