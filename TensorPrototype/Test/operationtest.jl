@@ -19,7 +19,7 @@ E = VariableTensor(V2', V3', Vi)
 @testset "Operations" begin
     @testset "Addition" begin
         @test (A + B).shape == A.shape
-        @test (A + B).children == (A, B)
+        @test (A + B).children == [A, B]
         @test (A[x,1] + B[1, y]).freeindices == (x, y)
         @test_throws DimensionMismatch A[x, y] + B
         @test (A[x, y] + D[y', z]).freeindices == (x,z)
@@ -34,7 +34,7 @@ E = VariableTensor(V2', V3', Vi)
     end
     @testset "Outer product" begin
         @test (A⊗B).shape == (V3, V2, V3, V2)
-        @test (A⊗B).children == (A, B)
+        @test (A⊗B).children == [A, B]
         @test (A[x,1] ⊗ B[1, y]).freeindices == (x, y)
         @test (A - B).shape == (V3, V2)
         @test (-B).shape == (V3, V2)
