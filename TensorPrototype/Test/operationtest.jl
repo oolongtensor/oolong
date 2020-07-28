@@ -55,7 +55,7 @@ E = VariableTensor(V2', V3', Vi)
         @test (A[x, y]*E[y', x', z]).freeindices == (z,)
         @test componenttensor(C[w, z, z'], w).shape == (Vj,)
         @test C[w, z, z'].freeindices == (w,)
-        @test C[w, z, z'].children[2].indices == Indices(z).indices
+        @test C[w, z, z'].children[2] == Indices(z)
     end
 end
 @testset "Tensors" begin
