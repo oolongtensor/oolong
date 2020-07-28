@@ -22,5 +22,5 @@ function addnodetograph(node::Node)
 end
 
 function children(node::Node)
-    return [vertex.node for vertex in outneighbors(_AST, node.index)]
+    return [get_prop(_AST, vertex, :node) for vertex in inneighbors(_AST, node.index)]
 end

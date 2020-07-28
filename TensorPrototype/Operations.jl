@@ -15,8 +15,6 @@ struct IndexSumOperation <: Operation
     end
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
-
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
     contractionindices = []
@@ -103,7 +101,7 @@ struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     index::Int
     freeindices::Tuple{Vararg{FreeIndex}}
-    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
+    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, Indices}, freeindices::Tuple{Vararg{FreeIndex}})
         node = new(shape, preparegraph(children...), freeindices)
         addnodetograph(node)
     end
