@@ -1,7 +1,5 @@
-include("../TreeVisitor.jl")
-
 function removezero!(add::AddOperation)
-    # Somehow remove children which are ZeroTensor
+    filter!(x -> !(x isa ZeroTensor), add.children)
 end
 
 function removezero!(node::Node)

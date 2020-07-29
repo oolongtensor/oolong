@@ -1,22 +1,24 @@
 include("../Operations.jl")
+include("ZeroRemover.jl")
 
-function _travelsal(node::Node, visitfn!::Function, visited::Union{BitArray, Nothing})
-    if ignorevisited == nothing || !visited[node.index]
+function _traversal(node::Node, visitfn!::Function, visited::Union{BitArray, Nothing})
+    if visited === nothing || !visited[node.index]
         visitfn!(node)
-        if ignorevisited != nothing
+        if visited !== nothing
             visited[node.index] = true
         end
         for child in node.children
-            _traversal(node, visitfn!, visited)
+            _traversal(child, visitfn!, visited)
         end
     end
 end
 
-function travelsal(node::Node, visitfn!::Function, ignorevisited::Boolean)
+function traversal(node::Node, visitfn!::Function, ignorevisited::Bool)
     if ignorevisited
         visited = BitArray(undef, getnumberofnodes())
     else
         visited = nothing
     end
     _traversal(node, visitfn!, visited)
+    return node
 end
