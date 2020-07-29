@@ -1,4 +1,4 @@
-include("../TreeVisitor/TreeVisitor.jl")
+include("../TreeVisitor/ZeroRemover.jl")
 
 using Test
 
@@ -10,6 +10,7 @@ Z = ZeroTensor(V3, V2)
 
 @testset "Visitors" begin
     @testset "ZeroRemoval" begin
-        @test traversal( A + Z, removezero!, false).children == [A]
+        @test removezero!(A + Z) == A
+        @test removezero!((A + Z)[1,2]) == A[1,2]
     end
 end

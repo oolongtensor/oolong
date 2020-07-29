@@ -1,5 +1,11 @@
 include("../Operations.jl")
-include("ZeroRemover.jl")
+
+struct RootNode <: Node
+    children::Array{Node}
+    index::Int
+end
+
+RootNode(node::Node) = RootNode([node], getnumberofnodes() + 1)
 
 function _traversal(node::Node, visitfn!::Function, visited::Union{BitArray, Nothing})
     if visited === nothing || !visited[node.index]
@@ -14,11 +20,12 @@ function _traversal(node::Node, visitfn!::Function, visited::Union{BitArray, Not
 end
 
 function traversal(node::Node, visitfn!::Function, ignorevisited::Bool)
+    root = RootNode(node)
     if ignorevisited
-        visited = BitArray(undef, getnumberofnodes())
+        visited = BitArray(undef, getnumberofnodes() + 1)
     else
         visited = nothing
     end
-    _traversal(node, visitfn!, visited)
-    return node
+    _traversal(root, visitfn!, visited)
+    return root.children[1]
 end
