@@ -7,12 +7,12 @@ abstract type Operation <: AbstractTensor end
 
 struct IndexSumOperation <: Operation
     shape::Tuple{}
-    children::Array{Node, 1}
+    children::MutableLinkedList{Node}
     freeindices::Tuple{Vararg{FreeIndex}}
     index::Int
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), [A, indices], freeindices, getcounter())
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), MutableLinkedList{Node}(A, indices), freeindices, getcounter())
 
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
@@ -31,11 +31,11 @@ end
 
 struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Array{AbstractTensor, 1}
+    children::MutableLinkedList{AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
     index::Int
     function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, [children...], freeindices, getcounter()))
+        return contractioncheck(new(shape, MutableLinkedList{AbstractTensor}(children...), freeindices, getcounter()))
     end
 end
 
@@ -52,11 +52,11 @@ end
 
 struct OuterProductOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Array{AbstractTensor, 1}
+    children::MutableLinkedList{AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
     index::Int
     function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, [children...], freeindices, getcounter()))
+        return contractioncheck(new(shape, MutableLinkedList{AbstractTensor}(children...), freeindices, getcounter()))
     end
 end
 
@@ -85,22 +85,22 @@ end
 
 struct IndexingOperation <: Operation
     shape::Tuple{}
-    children::Array{Node, 1}
+    children::MutableLinkedList{Node}
     freeindices::Tuple{Vararg{FreeIndex}}
     index::Int
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),[x, indices], tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...), getcounter()))
+        return contractioncheck(new((),MutableLinkedList{Node}(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...), getcounter()))
     end
 end
 
 struct ComponentTensorOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Array{Node, 1}
+    children::MutableLinkedList{Node}
     freeindices::Tuple{Vararg{FreeIndex}}
     index::Int
 end
 
-ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, A::AbstractTensor, indices::Indices, freeindices::Tuple{Vararg{FreeIndex}}) = ComponentTensorOperation(shape, [A, indices], freeindices, getcounter())
+ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, A::AbstractTensor, indices::Indices, freeindices::Tuple{Vararg{FreeIndex}}) = ComponentTensorOperation(shape, MutableLinkedList{Node}(A, indices), freeindices, getcounter())
 
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     if length(indices) == 0
