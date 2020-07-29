@@ -1,8 +1,6 @@
 include("Tensors.jl")
 include("Indices.jl")
 
-using DataStructures
-
 import Base
 
 abstract type Operation <: AbstractTensor end

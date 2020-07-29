@@ -1,4 +1,4 @@
-include("TreeVisitor.jl")
+include("../TreeVisitor.jl")
 
 function removezero!(add::AddOperation)
     # Somehow remove children which are ZeroTensor
