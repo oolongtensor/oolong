@@ -1,4 +1,4 @@
-include("TreeVisitor.jl")
+include("Traversal.jl")
 
 function _removezero!(add::AddOperation)
     filter!(x -> !(x isa ZeroTensor), add.children)

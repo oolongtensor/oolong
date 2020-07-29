@@ -9,12 +9,12 @@ RootNode(node::Node) = RootNode([node], getnumberofnodes() + 1)
 
 function _traversal(node::Node, visitfn!::Function, visited::Union{BitArray, Nothing})
     if visited === nothing || !visited[node.index]
+        for child in node.children
+            _traversal(child, visitfn!, visited)
+        end
         visitfn!(node)
         if visited !== nothing
             visited[node.index] = true
-        end
-        for child in node.children
-            _traversal(child, visitfn!, visited)
         end
     end
 end
