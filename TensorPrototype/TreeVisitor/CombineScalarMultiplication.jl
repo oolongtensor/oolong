@@ -1,9 +1,13 @@
 include("../Operations.jl")
 
-function removezero!(add::AddOperation)
+function toscalarmultiple(opp::OuterProductOperation)
+    
+#=
+function combinescalarmultiples!(add::AddOperation)
+    for node in add.children
+        if 
+end#=
 
-end
-
-function removezero!(node::Node)
+function combinescalarmultiples!(node::Node)
     return
 end
