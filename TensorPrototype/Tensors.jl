@@ -1,6 +1,7 @@
 include("Node.jl")
 include("VectorSpace.jl")
 include("Indices.jl")
+#include("ScalarOperations.jl")
 
 import Base
 
@@ -34,13 +35,13 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
     end
 end
 
-struct Tensor{T<:Scalar} <: AbstractTensor
+struct Tensor{T} <: AbstractTensor
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
     # TODO Check x consists of scalars, if possible
-    function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where (T<:Scalar)
+    function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where T
         checktensordimensions(x, Vs...)
         new{T}(x, Vs, (), ())
     end
