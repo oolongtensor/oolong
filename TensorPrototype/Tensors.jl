@@ -6,13 +6,15 @@ import Base
 
 abstract type AbstractTensor <: Node end
 
+abstract type TerminalTensor <: AbstractTensor end
+
 struct ScalarVariable
     name::String
 end
 
 Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
 
-struct VariableTensor <: AbstractTensor
+struct VariableTensor <: TerminalTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{Vararg{FreeIndex}}
@@ -34,7 +36,7 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
     end
 end
 
-struct Tensor{T} <: AbstractTensor
+struct Tensor{T} <: TerminalTensor
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -46,7 +48,7 @@ struct Tensor{T} <: AbstractTensor
     end
 end
 
-struct DeltaTensor <: AbstractTensor
+struct DeltaTensor <: TerminalTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
@@ -54,25 +56,13 @@ end
 
 DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
 
-struct ZeroTensor <: AbstractTensor
+struct ZeroTensor <: TerminalTensor
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
 ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
-
-struct MixedTensor <: AbstractTensor
-    value::AbstractArray
-    shape::Tuple{Vararg{AbstractVectorSpace}}
-    children::Tuple{}
-    freeindices::Tuple{Vararg{FreeIndex}}
-    # TODO Check x consists of scalars, if possible
-    function MixedTensor(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
-        checktensordimensions(x, Vs...)
-        new(x, Vs,  (), ())
-    end
-end
 
 function printtensor(io, s::String, A::AbstractTensor)
     print(io, typeof(A), ", ", s, "shape: ")
@@ -86,6 +76,6 @@ function printtensor(io, s::String, A::AbstractTensor)
     end
 end
 
-Base.show(io::IO, A::Union{Tensor, MixedTensor}) = printtensor(io, string(A.value, ", "), A)
+Base.show(io::IO, A::Tensor) = printtensor(io, string(A.value, ", "), A)
 
 Base.show(io::IO, A::Union{VariableTensor, DeltaTensor, ZeroTensor}) = printtensor(io, "", A)

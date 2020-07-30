@@ -65,7 +65,7 @@ aTensor = Tensor([a])
         @test C[w, z, z'].freeindices == (w,)
         @test C[w, z, z'].children[2] == Indices(z)
     end
-    @testset "Gradient" begin
+    @testset "Differentation" begin
         @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
         @test diff(cos(aTensor), a).children == (cos(aTensor), a)
     end
