@@ -1,4 +1,4 @@
-include("../Operations.jl")
+include("../Trigonometry.jl")
 using Test
 
 V3 = VectorSpace(3)
@@ -70,4 +70,13 @@ end
 @testset "Indices" begin
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
     @test_throws DomainError FixedIndex(VectorSpace(), 5)
+end
+@testset "Triginometry" begin
+    @test sin(1) isa SineOperation
+    @test sin(3).children[1].value == Tensor([3]).value
+    @test cos(ScalarVariable("x")) isa CosineOperation
+    @test tan(B[1, 2]) isa TangentOperation
+    @test_throws DomainError sin(A)
+    @test_throws DomainError cos(A)
+    @test_throws DomainError tan(A)
 end

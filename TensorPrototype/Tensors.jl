@@ -1,7 +1,6 @@
 include("Node.jl")
 include("VectorSpace.jl")
 include("Indices.jl")
-#include("ScalarOperations.jl")
 
 import Base
 
