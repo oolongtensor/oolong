@@ -1,4 +1,5 @@
 include("../Trigonometry.jl")
+include("../Differentation.jl")
 using Test
 
 V3 = VectorSpace(3)
