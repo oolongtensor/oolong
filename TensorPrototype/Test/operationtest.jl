@@ -16,9 +16,14 @@ B = Tensor(fill(1.2, (3, 2)), V3, V2)
 C = VariableTensor(Vj, Vi, Vi')
 D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
+Z = ZeroTensor(V3, V2)
+
 @testset "Operations" begin
     @testset "Addition" begin
         @test (A + B).shape == A.shape
+        @test A + Z == A
+        @test (A + Z)[1, 2] == A[1, 2]
+        @test Z + Z + Z == Z
         @test (A + B).children == (A, B)
         @test (A[x,1] + B[1, y]).freeindices == (x, y)
         @test_throws DimensionMismatch A[x, y] + B

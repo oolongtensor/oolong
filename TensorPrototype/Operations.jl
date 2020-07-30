@@ -32,20 +32,27 @@ struct AddOperation <: Operation
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+    function AddOperation(children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
+        if length(children) > 1
+            for child in children[2:length(children)]
+                if child.shape != children[1].shape
+                    throw(DimensionMismatch(string("Shapes ", children[1].shape, " and ", child.shape, " don't match")))
+                end
+            end
+        end
+        newchildren = tuple(filter!(x -> !(x isa ZeroTensor), [children...])...)
+        if length(newchildren) == 1
+            return newchildren[1]
+        end
+        if length(newchildren) == 0
+            return children[1]
+        end
+        return contractioncheck(new(children[1].shape, newchildren, freeindices))
     end
 end
 
 function Base.:+(nodes::Vararg{Node})
-    if length(nodes) > 1
-        for node in nodes[2:length(nodes)]
-            if node.shape != nodes[1].shape
-                throw(DimensionMismatch(string("Shapes ", nodes[1].shape, " and ", node.shape, " don't match")))
-            end
-        end
-    end
-    return AddOperation(nodes[1].shape, nodes, tuple(union([node.freeindices for node=nodes]...)...))
+    return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
 struct OuterProductOperation <: Operation
