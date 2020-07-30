@@ -145,6 +145,25 @@ function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     return Base.getindex(x, indexarray...)
 end
 
+struct DifferentationOperation <: Operation
+    shape::Tuple{}
+    children::Tuple{AbstractTensor, ScalarVariable}
+    function DifferentationOperation(A::AbstractTensor, v::ScalarVariable)
+        if !isempty(A.shape)
+            throw(DomainError(string(A, " is not a scalar")))
+        end
+        new((), (A, v))
+    end
+end
+
+function diff(A::AbstractTensor, v::ScalarVariable)
+    return DifferentationOperation(A, v)
+end
+
+function diff(s::Scalar, v::ScalarVariable)
+    return DifferentationOperation(Tensor[s], v)
+end
+
 function Base.show(io::IO, op::Operation, depth::Int)
     println(io, ["\t" for i in 1:depth]..., typeof(op))
     for child in op.children

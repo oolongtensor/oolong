@@ -17,6 +17,8 @@ C = VariableTensor(Vj, Vi, Vi')
 D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
 Z = ZeroTensor(V3, V2)
+a = ScalarVariable("a")
+aTensor = Tensor([a])
 
 @testset "Operations" begin
     @testset "Addition" begin
@@ -62,6 +64,10 @@ Z = ZeroTensor(V3, V2)
         @test C[w, z, z'].freeindices == (w,)
         @test C[w, z, z'].children[2] == Indices(z)
     end
+    @testset "Gradient" begin
+        @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
+        @test diff(cos(aTensor), a).children == (cos(aTensor), a)
+    end
 end
 @testset "Tensors" begin
     @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
@@ -71,7 +77,7 @@ end
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
     @test_throws DomainError FixedIndex(VectorSpace(), 5)
 end
-@testset "Triginometry" begin
+@testset "Trigonometry" begin
     @test sin(1) isa SineOperation
     @test sin(3).children[1].value == Tensor([3]).value
     @test cos(ScalarVariable("x")) isa CosineOperation
