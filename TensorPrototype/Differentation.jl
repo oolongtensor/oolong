@@ -18,3 +18,27 @@ end
 function diff(s::Scalar, v::ScalarVariable)
     return DifferentationOperation(Tensor[s], v)
 end
+
+function differentiateNode(A::Tensor, y::ScalarVariable)
+    if A.value[1] == y
+        return DeltaTensor()
+    else
+        return ZeroTensor()
+    end
+end
+
+function differentiateNode(Z::ZeroTensor, y::ScalarVariable)
+    return Z
+end
+
+function differentiateNode(add::AddOperation, y::ScalarVariable)
+    return +([differentiateNode(child, y) for child in add.children]...)
+end
+
+function differentiateAST(diff::DifferentationOperation)
+    return differentiateNode(diff.children...)
+end
+
+function differentiateAST(node::Node)
+    return node
+end

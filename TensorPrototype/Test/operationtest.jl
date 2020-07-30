@@ -65,10 +65,6 @@ aTensor = Tensor([a])
         @test C[w, z, z'].freeindices == (w,)
         @test C[w, z, z'].children[2] == Indices(z)
     end
-    @testset "Differentation" begin
-        @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
-        @test diff(cos(aTensor), a).children == (cos(aTensor), a)
-    end
 end
 @testset "Tensors" begin
     @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
@@ -86,4 +82,12 @@ end
     @test_throws DomainError sin(A)
     @test_throws DomainError cos(A)
     @test_throws DomainError tan(A)
+end
+@testset "Differentation" begin
+    @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
+    @test diff(cos(aTensor), a).children == (cos(aTensor), a)
+    @test differentiateAST(diff(aTensor, a)) == DeltaTensor()
+    @test differentiateAST(aTensor) == aTensor
+    @test differentiateAST(diff(aTensor, ScalarVariable("z"))) == ZeroTensor()
+    @test differentiateAST(diff(aTensor + ZeroTensor(), a)) == DeltaTensor()
 end
