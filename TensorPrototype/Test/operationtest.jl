@@ -19,7 +19,7 @@ D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
-aTensor = Tensor([a])
+#aTensor = Tensor([a])
 
 @testset "Operations" begin
     @testset "Addition" begin
@@ -73,7 +73,7 @@ end
 @testset "Indices" begin
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
     @test_throws DomainError FixedIndex(VectorSpace(), 5)
-end
+end#=
 @testset "Trigonometry" begin
     @test sin(1) isa SineOperation
     @test sin(3).children[1].value == Tensor([3]).value
@@ -90,4 +90,4 @@ end
     @test differentiateAST(aTensor) == aTensor
     @test differentiateAST(diff(aTensor, ScalarVariable("z"))) == ZeroTensor()
     @test differentiateAST(diff(aTensor + ZeroTensor(), a)) == DeltaTensor()
-end
+end=#

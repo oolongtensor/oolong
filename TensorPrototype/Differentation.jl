@@ -1,17 +1,14 @@
 include("Operations.jl")
 
-struct DifferentationOperation <: Operation
+struct DifferentationOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, ScalarVariable}
-    function DifferentationOperation(A::AbstractTensor, v::ScalarVariable)
-        if !isempty(A.shape)
-            throw(DomainError(string(A, " is not a scalar")))
-        end
-        new((), (A, v))
+    function DifferentationOperation(A::AbstractTensor{0}, v::ScalarVariable)
+        new{0}((), (A, v))
     end
 end
 
-function diff(A::AbstractTensor, v::ScalarVariable)
+function diff(A::AbstractTensor{0}, v::ScalarVariable)
     return DifferentationOperation(A, v)
 end
 

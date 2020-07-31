@@ -4,24 +4,24 @@ include("Indices.jl")
 
 import Base
 
-abstract type AbstractTensor <: Node end
+abstract type AbstractTensor{rank} <: Node end
 
-abstract type TerminalTensor <: AbstractTensor end
+abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 
 struct ScalarVariable
     name::String
 end
 
-Scalar = Union{ScalarVariable, Base.Complex, Base.Real}
+Scalar = Union{ScalarVariable, Base.Complex, Base.Real, AbstractTensor{0}}
 
-struct VariableTensor <: TerminalTensor
+struct VariableTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
-    freeindices::Tuple{Vararg{FreeIndex}}
-    # Field information?
+    freeindices::Tuple{}
+    function VariableTensor(shape::Vararg{AbstractVectorSpace})
+        new{length(shape)}(shape, (), ())
+    end
 end
-
-VariableTensor(shape::Vararg{AbstractVectorSpace}) = VariableTensor(shape, (), ())
 
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
@@ -36,7 +36,7 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
     end
 end
 
-struct Tensor{T} <: TerminalTensor
+struct Tensor{T, rank} <: TerminalTensor{rank}
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -44,34 +44,37 @@ struct Tensor{T} <: TerminalTensor
     # TODO Check x consists of scalars, if possible
     function Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where T
         checktensordimensions(x, Vs...)
-        new{T}(x, Vs, (), ())
+        new{T, length(Vs)}(x, Vs, (), ())
     end
 end
 
-struct DeltaTensor <: TerminalTensor
+struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
+    function DeltaTensor(As::Vararg{AbstractVectorSpace})
+        new{length(As)}(As, (), ())
+    end
 end
 
-DeltaTensor(As::Vararg{AbstractVectorSpace}) = DeltaTensor(As, (), ())
-
-struct ZeroTensor <: TerminalTensor
+struct ZeroTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
+    function ZeroTensor(As::Vararg{AbstractVectorSpace})
+        new{length(As)}(As, (), ())
+    end
 end
 
-ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
-
-struct ConstantTensor{T} <: TerminalTensor
+struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
     value::T
+    function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar) 
+        new{T, length(As)}(As, (), (), value)
+    end
 end
-
-ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar) = ConstantTensor{T}(As, (), (), value)
 
 function printtensor(io, s::String, A::AbstractTensor)
     print(io, typeof(A), ", ", s, "shape: ")

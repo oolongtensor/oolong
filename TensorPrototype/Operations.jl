@@ -3,15 +3,15 @@ include("Indices.jl")
 
 import Base
 
-abstract type Operation <: AbstractTensor end
+abstract type Operation{rank} <: AbstractTensor{rank} end
 
-struct IndexSumOperation <: Operation
+struct IndexSumOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{0}((), (A, indices), freeindices)
 
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
@@ -28,11 +28,11 @@ function contractioncheck(A::AbstractTensor)
     return IndexSumOperation(A, Indices(contractionindices...), freeindices...)
 end
 
-struct AddOperation <: Operation
+struct AddOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function AddOperation(children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
+    function AddOperation(children::Tuple{Vararg{AbstractTensor{rank}}}, freeindices::Tuple{Vararg{FreeIndex}}) where rank
         if length(children) > 1
             for child in children[2:length(children)]
                 if child.shape != children[1].shape
@@ -47,7 +47,7 @@ struct AddOperation <: Operation
         if length(newchildren) == 0
             return children[1]
         end
-        return contractioncheck(new(children[1].shape, newchildren, freeindices))
+        return contractioncheck(new{rank}(children[1].shape, newchildren, freeindices))
     end
 end
 
@@ -55,12 +55,12 @@ function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
-struct OuterProductOperation <: Operation
+struct OuterProductOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
     function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+        return contractioncheck(new{length(shape)}(shape, children, freeindices))
     end
 end
 
@@ -68,38 +68,51 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
-function Base.:*(A::AbstractTensor, B::AbstractTensor)
-    if !isempty(A.shape) || !isempty(B.shape)
-        throw(DomainError(string(A , " or ", B, " is not a scalar")))
+function Base.:*(x::Scalar, y::Scalar)
+    if !(x isa AbstractTensor)
+        x = Tensor([x])
     end
-    return A⊗B
+    if !(y isa AbstractTensor)
+        y = Tensor([y])
+    end
+    return x ⊗ y
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
-    return Tensor([x]) ⊗ A
+    if !(x isa AbstractTensor{0})
+        x = Tensor([x])
+    end
+    return x ⊗ A
+end
+
+function Base.:*(A::AbstractTensor, x::Scalar)
+    return x*A
 end
 
 function Base.:-(A::AbstractTensor)
     return -1*A
 end
 
-function Base.:-(A::AbstractTensor, B::AbstractTensor)
+function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
-struct IndexingOperation <: Operation
+struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
+        return contractioncheck(new{0}((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
     end
 end
 
-struct ComponentTensorOperation <: Operation
+struct ComponentTensorOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, Indices}, freeindices::Tuple{Vararg{FreeIndex}})
+        new{length(shape)}(shape, children, freeindices)
+    end
 end
 
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
