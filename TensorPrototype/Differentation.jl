@@ -35,6 +35,11 @@ function differentiateNode(add::AddOperation, y::ScalarVariable)
     return +([differentiateNode(child, y) for child in add.children]...)
 end
 
+function differentiateNode(op::OuterProductOperation, y::ScalarVariable)
+    (A, B) = op.children
+    return A*diff(B, y) + diff(A, y)*B
+end
+
 function differentiateAST(diff::DifferentationOperation)
     return differentiateNode(diff.children...)
 end
