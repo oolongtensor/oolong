@@ -8,15 +8,11 @@ struct DifferentationOperation{rank} <: Operation{rank}
     end
 end
 
-function diff(A::AbstractTensor{0}, v::ScalarVariable)
-    return DifferentationOperation(A, v)
-end
-
 function diff(s::Scalar, v::ScalarVariable)
     return DifferentationOperation(Tensor[s], v)
 end
 
-function differentiateNode(A::Tensor, y::ScalarVariable)
+function differentiateNode(A::Tensor{0}, y::ScalarVariable)
     if A.value[1] == y
         return DeltaTensor()
     else
@@ -24,15 +20,15 @@ function differentiateNode(A::Tensor, y::ScalarVariable)
     end
 end
 
-function differentiateNode(Z::ZeroTensor, y::ScalarVariable)
+function differentiateNode(Z::ZeroTensor{0}, y::ScalarVariable)
     return Z
 end
 
-function differentiateNode(add::AddOperation, y::ScalarVariable)
+function differentiateNode(add::AddOperation{0}, y::ScalarVariable)
     return +([differentiateNode(child, y) for child in add.children]...)
 end
 
-function differentiateNode(op::OuterProductOperation, y::ScalarVariable)
+function differentiateNode(op::OuterProductOperation{0}, y::ScalarVariable)
     (A, B) = op.children
     return A*diff(B, y) + diff(A, y)*B
 end

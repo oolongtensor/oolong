@@ -82,7 +82,7 @@ end
     @test_throws MethodError sin(A)
     @test_throws MethodError cos(A)
     @test_throws MethodError tan(A)
-end#=
+end
 @testset "Differentation" begin
     @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
     @test diff(cos(aTensor), a).children == (cos(aTensor), a)
@@ -90,4 +90,4 @@ end#=
     @test differentiateAST(aTensor) == aTensor
     @test differentiateAST(diff(aTensor, ScalarVariable("z"))) == ZeroTensor()
     @test differentiateAST(diff(aTensor + ZeroTensor(), a)) == DeltaTensor()
-end=#
+end
