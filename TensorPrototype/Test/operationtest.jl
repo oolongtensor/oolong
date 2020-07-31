@@ -1,4 +1,5 @@
-include("../Operations.jl")
+include("../Trigonometry.jl")
+include("../Differentation.jl")
 using Test
 
 V3 = VectorSpace(3)
@@ -16,12 +17,19 @@ B = Tensor(fill(1.2, (3, 2)), V3, V2)
 C = VariableTensor(Vj, Vi, Vi')
 D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
+Z = ZeroTensor(V3, V2)
+a = ScalarVariable("a")
+aTensor = Tensor(a)
+
 @testset "Operations" begin
     @testset "Addition" begin
         @test (A + B).shape == A.shape
+        @test A + Z == A
+        @test (A + Z)[1, 2] == A[1, 2]
+        @test Z + Z + Z == Z
         @test (A + B).children == (A, B)
         @test (A[x,1] + B[1, y]).freeindices == (x, y)
-        @test_throws DimensionMismatch A[x, y] + B
+        @test_throws DimensionMismatch A + D
         @test (A[x, y] + D[y', z]).freeindices == (x,z)
     end
     @testset "Index" begin
@@ -65,4 +73,21 @@ end
 @testset "Indices" begin
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
     @test_throws DomainError FixedIndex(VectorSpace(), 5)
+end
+@testset "Trigonometry" begin
+    @test sin(1) isa SineOperation
+    @test sin(3).children[1] == Tensor(3)
+    @test cos(ScalarVariable("x")) isa CosineOperation
+    @test tan(B[1, 2]) isa TangentOperation
+    @test_throws MethodError sin(A)
+    @test_throws MethodError cos(A)
+    @test_throws MethodError tan(A)
+end
+@testset "Differentation" begin
+    @test diff(aTensor, a) == ConstantTensor(1)
+    @test diff(aTensor, ScalarVariable("z")) == ZeroTensor()
+    @test diff(aTensor + ZeroTensor(), a) == ConstantTensor(1)
+    @test diff(sin(aTensor), a) == cos(aTensor)
+    @test diff(cos(aTensor), a) == -sin(aTensor)
+    @test diff(sin(a * ScalarVariable("z")), a) == cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
 end

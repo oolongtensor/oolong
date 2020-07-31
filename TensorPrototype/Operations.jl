@@ -3,15 +3,15 @@ include("Indices.jl")
 
 import Base
 
-abstract type Operation <: AbstractTensor end
+abstract type Operation{rank} <: AbstractTensor{rank} end
 
-struct IndexSumOperation <: Operation
-    shape::Tuple{}
+struct IndexSumOperation{rank} <: Operation{rank}
+    shape::Tuple{Vararg{VectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation((), (A, indices), freeindices)
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{length(A.shape)}(A.shape, (A, indices), freeindices)
 
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
@@ -28,32 +28,39 @@ function contractioncheck(A::AbstractTensor)
     return IndexSumOperation(A, Indices(contractionindices...), freeindices...)
 end
 
-struct AddOperation <: Operation
+struct AddOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function AddOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{Vararg{AbstractTensor}}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+    function AddOperation(children::Tuple{Vararg{AbstractTensor{rank}}}, freeindices::Tuple{Vararg{FreeIndex}}) where rank
+        if length(children) > 1
+            for child in children[2:length(children)]
+                if child.shape != children[1].shape
+                    throw(DimensionMismatch(string("Shapes ", children[1].shape, " and ", child.shape, " don't match")))
+                end
+            end
+        end
+        newchildren = tuple(filter!(x -> !(x isa ZeroTensor), [children...])...)
+        if length(newchildren) == 1
+            return newchildren[1]
+        end
+        if length(newchildren) == 0
+            return children[1]
+        end
+        return contractioncheck(new{rank}(children[1].shape, newchildren, freeindices))
     end
 end
 
 function Base.:+(nodes::Vararg{Node})
-    if length(nodes) > 1
-        for node in nodes[2:length(nodes)]
-            if node.shape != nodes[1].shape
-                throw(DimensionMismatch(string("Shapes ", nodes[1].shape, " and ", node.shape, " don't match")))
-            end
-        end
-    end
-    return AddOperation(nodes[1].shape, nodes, tuple(union([node.freeindices for node=nodes]...)...))
+    return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
-struct OuterProductOperation <: Operation
+struct OuterProductOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
     function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new(shape, children, freeindices))
+        return contractioncheck(new{length(shape)}(shape, children, freeindices))
     end
 end
 
@@ -61,38 +68,49 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
-function Base.:*(A::AbstractTensor, B::AbstractTensor)
-    if !isempty(A.shape) || !isempty(B.shape)
-        throw(DomainError(string(A , " or ", B, " is not a scalar")))
+function Base.:*(x::Scalar, y::Union{ScalarVariable, AbstractTensor{0}})
+    if x == 1 || x == ConstantTensor(1)
+        return Tensor(y)
+    elseif y == ConstantTensor(1)
+        return Tensor(x)
+    elseif x == 0 || x isa ZeroTensor || y isa ZeroTensor
+        return ZeroTensor()
+    else
+        return Tensor(x) ⊗ Tensor(y)
     end
-    return A⊗B
 end
 
 function Base.:*(x::Scalar, A::AbstractTensor)
-    return Tensor([x]) ⊗ A
+    if x == 1 || x == ConstantTensor(1)
+        return A
+    end
+    return Tensor(x) ⊗ A
 end
 
 function Base.:-(A::AbstractTensor)
     return -1*A
 end
 
-function Base.:-(A::AbstractTensor, B::AbstractTensor)
+function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
-struct IndexingOperation <: Operation
+struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
     function IndexingOperation(x::AbstractTensor, indices::Indices)
-        return contractioncheck(new((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
+        return contractioncheck(new{0}((),(x, indices), tuple(x.freeindices..., [i for i=indices.indices if i isa FreeIndex]...)))
     end
 end
 
-struct ComponentTensorOperation <: Operation
+struct ComponentTensorOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, Indices}, freeindices::Tuple{Vararg{FreeIndex}})
+        new{length(shape)}(shape, children, freeindices)
+    end
 end
 
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
