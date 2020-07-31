@@ -6,12 +6,12 @@ import Base
 abstract type Operation{rank} <: AbstractTensor{rank} end
 
 struct IndexSumOperation{rank} <: Operation{rank}
-    shape::Tuple{}
+    shape::Tuple{Vararg{VectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
 end
 
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{0}((), (A, indices), freeindices)
+IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{length(A.shape)}(A.shape, (A, indices), freeindices)
 
 #  Check if we have have an upper and lower index - if so, repeat them
 function contractioncheck(A::AbstractTensor)
