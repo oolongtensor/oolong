@@ -19,7 +19,7 @@ D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
-#aTensor = Tensor([a])
+aTensor = Tensor([a])
 
 @testset "Operations" begin
     @testset "Addition" begin
@@ -29,7 +29,7 @@ a = ScalarVariable("a")
         @test Z + Z + Z == Z
         @test (A + B).children == (A, B)
         @test (A[x,1] + B[1, y]).freeindices == (x, y)
-        @test_throws DimensionMismatch A[x, y] + B
+        @test_throws DimensionMismatch A + D
         @test (A[x, y] + D[y', z]).freeindices == (x,z)
     end
     @testset "Index" begin

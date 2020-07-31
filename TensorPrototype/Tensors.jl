@@ -48,6 +48,9 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
+Tensor(x::Tensor) = x
+Tensor(x::Scalar) = Tensor([x])
+
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}

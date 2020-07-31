@@ -68,7 +68,7 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
-function Base.:*(x::Scalar, y::Scalar)
+function Base.:*(x::ScalarVariable, y::Scalar)
     if !(x isa AbstractTensor)
         x = Tensor([x])
     end
@@ -78,15 +78,12 @@ function Base.:*(x::Scalar, y::Scalar)
     return x ⊗ y
 end
 
-function Base.:*(x::Scalar, A::AbstractTensor)
-    if !(x isa AbstractTensor{0})
-        x = Tensor([x])
-    end
-    return x ⊗ A
+function Base.:*(x::Scalar, y::AbstractTensor)
+    return Tensor(x) ⊗ A
 end
 
-function Base.:*(A::AbstractTensor, x::Scalar)
-    return x*A
+function Base.:*(x::Scalar, y::ScalarVariable)
+    return Tensor(x) ⊗ Tensor(y)
 end
 
 function Base.:-(A::AbstractTensor)
