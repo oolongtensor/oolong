@@ -9,12 +9,8 @@ struct SineOperation{rank} <: Operation{rank}
     end
 end
 
-function sin(A::AbstractTensor{0})
-    return SineOperation(A)
-end
-
 function sin(s::Scalar)
-    return sin(Tensor([s]))
+    return SineOperation(Tensor([s]))
 end
 
 struct CosineOperation{rank} <: Operation{rank}
@@ -25,12 +21,8 @@ struct CosineOperation{rank} <: Operation{rank}
     end
 end
 
-function cos(A::AbstractTensor{0})
-    return CosineOperation(A)
-end
-
 function cos(s::Scalar)
-    return cos(Tensor([s]))
+    return CosineOperation(Tensor([s]))
 end
 
 struct TangentOperation{rank} <: Operation{rank}
@@ -41,10 +33,6 @@ struct TangentOperation{rank} <: Operation{rank}
     end
 end
 
-function tan(A::AbstractTensor{0})
-    return TangentOperation(A)
-end
-
 function tan(s::Scalar)
-    return tan(Tensor([s]))
+    return TangentOperation(Tensor([s]))
 end

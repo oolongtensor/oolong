@@ -73,16 +73,16 @@ end
 @testset "Indices" begin
     @test_throws DomainError FixedIndex(VectorSpace(4), 5)
     @test_throws DomainError FixedIndex(VectorSpace(), 5)
-end#=
+end
 @testset "Trigonometry" begin
     @test sin(1) isa SineOperation
-    @test sin(3).children[1].value == Tensor([3]).value
+    @test sin(3).children[1].value == Tensor(3).value
     @test cos(ScalarVariable("x")) isa CosineOperation
     @test tan(B[1, 2]) isa TangentOperation
-    @test_throws DomainError sin(A)
-    @test_throws DomainError cos(A)
-    @test_throws DomainError tan(A)
-end
+    @test_throws MethodError sin(A)
+    @test_throws MethodError cos(A)
+    @test_throws MethodError tan(A)
+end#=
 @testset "Differentation" begin
     @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
     @test diff(cos(aTensor), a).children == (cos(aTensor), a)
