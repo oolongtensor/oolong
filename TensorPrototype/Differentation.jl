@@ -1,42 +1,30 @@
-include("Operations.jl")
+include("Trigonometry.jl")
 
-struct DifferentationOperation{rank} <: Operation{rank}
-    shape::Tuple{}
-    children::Tuple{AbstractTensor, ScalarVariable}
-    function DifferentationOperation(A::AbstractTensor{0}, v::ScalarVariable)
-        new{0}((), (A, v))
-    end
-end
-
-function diff(s::Scalar, v::ScalarVariable)
-    return DifferentationOperation(Tensor[s], v)
-end
-
-function differentiateNode(A::Tensor{0}, y::ScalarVariable)
-    if A.value[1] == y
-        return DeltaTensor()
+function diff(A::Union{Tensor{T, 0}, ConstantTensor{T, 0}}, y::ScalarVariable) where T
+    if A.value == y || A.value == [y]
+        return ConstantTensor(1)
     else
         return ZeroTensor()
     end
 end
 
-function differentiateNode(Z::ZeroTensor{0}, y::ScalarVariable)
+function diff(Z::ZeroTensor{0}, y::ScalarVariable)
     return Z
 end
 
-function differentiateNode(add::AddOperation{0}, y::ScalarVariable)
-    return +([differentiateNode(child, y) for child in add.children]...)
+function diff(add::AddOperation{0}, y::ScalarVariable)
+    return +([diff(child, y) for child in add.children]...)
 end
 
-function differentiateNode(op::OuterProductOperation{0}, y::ScalarVariable)
+function diff(op::OuterProductOperation{0}, y::ScalarVariable)
     (A, B) = op.children
     return A*diff(B, y) + diff(A, y)*B
 end
 
-function differentiateAST(diff::DifferentationOperation)
-    return differentiateNode(diff.children...)
+function diff(si::SineOperation{0}, y::ScalarVariable)
+    return cos(si.children[1]) * diff(si.children[1], y)
 end
 
-function differentiateAST(node::Node)
-    return node
+function diff(co::CosineOperation{0}, y::ScalarVariable)
+    return - sin(co.children[1]) * diff(co.children[1], y)
 end

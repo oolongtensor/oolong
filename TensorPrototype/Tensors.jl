@@ -48,9 +48,6 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
-Tensor(x::AbstractTensor{0}) = x
-Tensor(x::Scalar) = Tensor([x])
-
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -74,10 +71,16 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     children::Tuple{}
     freeindices::Tuple{}
     value::T
-    function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar) 
+    function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar)
+        if value == 0
+            return ZeroTensor(As)
+        end 
         new{T, length(As)}(As, (), (), value)
     end
 end
+
+Tensor(x::AbstractTensor{0}) = x
+Tensor(x::T) where (T <: Scalar) = ConstantTensor(x)
 
 function printtensor(io, s::String, A::AbstractTensor)
     print(io, typeof(A), ", ", s, "shape: ")

@@ -19,7 +19,7 @@ D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
-aTensor = Tensor([a])
+aTensor = Tensor(a)
 
 @testset "Operations" begin
     @testset "Addition" begin
@@ -76,7 +76,7 @@ end
 end
 @testset "Trigonometry" begin
     @test sin(1) isa SineOperation
-    @test sin(3).children[1].value == Tensor(3).value
+    @test sin(3).children[1] == Tensor(3)
     @test cos(ScalarVariable("x")) isa CosineOperation
     @test tan(B[1, 2]) isa TangentOperation
     @test_throws MethodError sin(A)
@@ -84,10 +84,10 @@ end
     @test_throws MethodError tan(A)
 end
 @testset "Differentation" begin
-    @test diff(cos(ScalarVariable("x")), ScalarVariable("x")) isa DifferentationOperation
-    @test diff(cos(aTensor), a).children == (cos(aTensor), a)
-    @test differentiateAST(diff(aTensor, a)) == DeltaTensor()
-    @test differentiateAST(aTensor) == aTensor
-    @test differentiateAST(diff(aTensor, ScalarVariable("z"))) == ZeroTensor()
-    @test differentiateAST(diff(aTensor + ZeroTensor(), a)) == DeltaTensor()
+    @test diff(aTensor, a) == ConstantTensor(1)
+    @test diff(aTensor, ScalarVariable("z")) == ZeroTensor()
+    @test diff(aTensor + ZeroTensor(), a) == ConstantTensor(1)
+    @test diff(sin(aTensor), a) == cos(aTensor)
+    @test diff(cos(aTensor), a) == -sin(aTensor)
+    @test diff(sin(a * ScalarVariable("z")), a) == cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
 end
