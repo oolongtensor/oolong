@@ -64,6 +64,15 @@ end
 
 ZeroTensor(As::Vararg{AbstractVectorSpace}) = ZeroTensor(As, (), ())
 
+struct ConstantTensor{T} <: TerminalTensor
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{}
+    freeindices::Tuple{}
+    value::T
+end
+
+ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar) = ConstantTensor{T}(As, (), (), value)
+
 function printtensor(io, s::String, A::AbstractTensor)
     print(io, typeof(A), ", ", s, "shape: ")
     if A.shape == ()
@@ -76,6 +85,6 @@ function printtensor(io, s::String, A::AbstractTensor)
     end
 end
 
-Base.show(io::IO, A::Tensor) = printtensor(io, string(A.value, ", "), A)
+Base.show(io::IO, A::Union{Tensor, ConstantTensor}) = printtensor(io, string(A.value, ", "), A)
 
 Base.show(io::IO, A::Union{VariableTensor, DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
