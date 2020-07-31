@@ -69,17 +69,11 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
 end
 
 function Base.:*(x::ScalarVariable, y::Scalar)
-    if !(x isa AbstractTensor)
-        x = Tensor([x])
-    end
-    if !(y isa AbstractTensor)
-        y = Tensor([y])
-    end
-    return x ⊗ y
+    return Tensor(x) ⊗ Tensor(y)
 end
 
 function Base.:*(x::Scalar, y::AbstractTensor)
-    return Tensor(x) ⊗ A
+    return Tensor(x) ⊗ y
 end
 
 function Base.:*(x::Scalar, y::ScalarVariable)
