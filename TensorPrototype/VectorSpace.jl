@@ -1,9 +1,13 @@
 import Base
 
+"""Abstract vector space type"""
 abstract type AbstractVectorSpace end
 
 counter = 0
 
+"""A vector space with optional dimension. Id distinguishes between different
+vector spaces of the same dimension. User should not need to set id.
+"""
 struct VectorSpace <: AbstractVectorSpace
     dim::Union{Int, Nothing}
     id::Int
@@ -16,10 +20,12 @@ end
 
 VectorSpace() = VectorSpace(nothing)
 
+"""Dual of a given vector space."""
 struct DualVectorSpace <: AbstractVectorSpace
     vectorspace::AbstractVectorSpace
 end
 
+"""Vector space corresponding to R^n for some n."""
 struct RnSpace <: AbstractVectorSpace
     dim::Int
 end
@@ -38,7 +44,7 @@ Base.show(io::IO, Vstar::DualVectorSpace) = print(io, Vstar', "*")
 Base.show(io::IO, R::RnSpace) = print(io,  "R^",dim(R))
 
 function Base.show(io::IO, V::VectorSpace)
-    if dim(V) == nothing
+    if dim(V) === nothing
         print(io, "V", "_", V.id)
     else
         print(io, "V", dim(V), "_", V.id)
