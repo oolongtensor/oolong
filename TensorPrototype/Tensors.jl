@@ -59,6 +59,7 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
+"""The general identity tensor."""
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -77,6 +78,7 @@ struct ZeroTensor{rank} <: TerminalTensor{rank}
     end
 end
 
+"""A tensor where every entry is of the same value."""
 struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
