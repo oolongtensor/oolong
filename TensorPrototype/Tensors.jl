@@ -4,16 +4,26 @@ include("Indices.jl")
 
 import Base
 
+"""A type for all the tensors and tensor like objects.
+
+The rank means the number of indices. For example AbstractTensor{0} is a
+scalar, and AbstractTensor{2} a matrix.
+"""
 abstract type AbstractTensor{rank} <: Node end
 
+"""A type for the tensors which are terminal nodes, i.e not created by
+operations.
+"""
 abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 
 struct ScalarVariable
     name::String
 end
 
+"""A union type for everything that can be treated as a scalar."""
 Scalar = Union{ScalarVariable, Base.Complex, Base.Real, AbstractTensor{0}}
 
+"""Tensors of which we only know in which vector spaces their indices are."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -36,6 +46,7 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
     end
 end
 
+"""Tensor created from a multidimensional array."""
 struct Tensor{T, rank} <: TerminalTensor{rank}
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
@@ -79,7 +90,9 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
+"""A convenience function. Allows calling Tensor on any scalar."""
 Tensor(x::AbstractTensor{0}) = x
+"""Turns non-tensor scalar into a tensor."""
 Tensor(x::T) where (T <: Scalar) = ConstantTensor(x)
 
 function printtensor(io, s::String, A::AbstractTensor)
