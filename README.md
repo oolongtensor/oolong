@@ -6,12 +6,13 @@ Currently turns tensor operations into an abstract syntax tree.
 Example:
 ```
 julia> A = Tensor([1 2 ; 3 4], RnSpace(2), RnSpace(2))
-julia> B = Tensor([5 6 ; 7 8], RnSpace(2), RnSpace(2))
+julia> B = VariableTensor(RnSpace(2), RnSpace(2))
+julia> x = FreeIndex(RnSpace(2), "x")
 
-julia> (A + B)[1, 2]
+julia> (A + B)[1, x]
 IndexingOperation{0}
         AddOperation{2}
                 Tensor{Int64,2}, [1 2; 3 4], shape: R^2⊗ R^2
-                Tensor{Int64,2}, [5 6; 7 8], shape: R^2⊗ R^2
-        (1, 2)
+                VariableTensor{2}, shape: R^2⊗ R^2
+        (1, x)
 ```
