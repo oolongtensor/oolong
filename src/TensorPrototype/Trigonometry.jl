@@ -1,6 +1,8 @@
 include("Tensors.jl")
 include("Operations.jl")
 
+import Base
+
 struct SineOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor}
@@ -10,7 +12,7 @@ struct SineOperation{rank} <: Operation{rank}
     end
 end
 
-function sin(s::Scalar)
+function Base.sin(s::Union{ScalarVariable, AbstractTensor{0}})
     return SineOperation(Tensor(s))
 end
 
@@ -23,7 +25,7 @@ struct CosineOperation{rank} <: Operation{rank}
     end
 end
 
-function cos(s::Scalar)
+function Base.cos(s::Union{ScalarVariable, AbstractTensor{0}})
     return CosineOperation(Tensor(s))
 end
 
@@ -36,6 +38,6 @@ struct TangentOperation{rank} <: Operation{rank}
     end
 end
 
-function tan(s::Scalar)
+function Base.tan(s::Union{ScalarVariable, AbstractTensor{0}})
     return TangentOperation(Tensor(s))
 end
