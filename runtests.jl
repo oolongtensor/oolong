@@ -75,20 +75,20 @@ aTensor = Tensor(a)
         @test_throws DomainError FixedIndex(VectorSpace(), 5)
     end
     @testset "Trigonometry" begin
-        @test sin(Tensor(1)) isa SineOperation
-        @test sin(Tensor(3)).children[1] == Tensor(3)
-        @test cos(ScalarVariable("x")) isa CosineOperation
-        @test tan(B[1, 2]) isa TangentOperation
-        @test_throws MethodError sin(A)
-        @test_throws MethodError cos(A)
-        @test_throws MethodError tan(A)
+        @test Base.sin(Tensor(1)) isa SineOperation
+        @test Base.sin(Tensor(3)).children[1] == Tensor(3)
+        @test Base.cos(ScalarVariable("x")) isa CosineOperation
+        @test Base.tan(B[1, 2]) isa TangentOperation
+        @test_throws MethodError Base.sin(A)
+        @test_throws MethodError Base.cos(A)
+        @test_throws MethodError Base.tan(A)
     end
     @testset "Differentation" begin
-        @test diff(aTensor, a) == ConstantTensor(1)
-        @test diff(aTensor, ScalarVariable("z")) == ZeroTensor()
-        @test diff(aTensor + ZeroTensor(), a) == ConstantTensor(1)
-        @test diff(sin(aTensor), a) == cos(aTensor)
-        @test diff(cos(aTensor), a) == -sin(aTensor)
-        @test diff(sin(a * ScalarVariable("z")), a) == cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
+        @test Base.diff(aTensor, a) == ConstantTensor(1)
+        @test Base.diff(aTensor, ScalarVariable("z")) == ZeroTensor()
+        @test Base.diff(aTensor + ZeroTensor(), a) == ConstantTensor(1)
+        @test Base.diff(Base.sin(aTensor), a) == Base.cos(aTensor)
+        @test Base.diff(Base.cos(aTensor), a) == -Base.sin(aTensor)
+        @test Base.diff(Base.sin(a * ScalarVariable("z")), a) == Base.cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
     end
 end
