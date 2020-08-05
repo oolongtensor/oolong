@@ -6,11 +6,10 @@ include("../TreeVisitor/Traversal.jl")
 function replaceshape(A::Node, pair::Pair)
     return tuple([i == first(pair) ? last(pair) : i for i in A.shape]...)
 end
-#=
+
 function updatevectorspace(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
-    new_shape = replace([A.shape...], pair)
-    return Tensor(A.value, new_shape...)
-end=#
+    return Tensor(A.value, replaceshape(A, pair)...)
+end
 
 function updatevectorspace(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return VariableTensor(replaceshape(A, pair)...)

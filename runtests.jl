@@ -105,6 +105,8 @@ aTensor = Tensor(a)
     end
     @testset "Assignment" begin
         @test updatevectorspace(A, V2=>RnSpace(2)) == VariableTensor(V3, RnSpace(2))
+        @test updatevectorspace(B, V2=>RnSpace(2)).shape == (V3, RnSpace(2))
+        @test assign(A, A=>B) == B
         # TODO Create a better node equality so that strings are not needed
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
     end

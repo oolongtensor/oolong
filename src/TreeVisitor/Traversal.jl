@@ -15,12 +15,11 @@ end
 
 function traversal(node::Node, pretraversalfn::Function, visitfn::Function, pretraversalfnargs, visitfnargs)
     root = RootNode(node)
-    println(pretraversalfn)
     if pretraversalfnargs !== nothing
         root = pretraversalfn(root, pretraversalfnargs)
     else
         root = pretraversalfn(root)
     end
-    _traversal(root, visitfn, visitfnargs)
+    root = _traversal(root, visitfn, visitfnargs)
     return root.children[1]
 end
