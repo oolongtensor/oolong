@@ -94,16 +94,17 @@ aTensor = Tensor(a)
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin
-            @test updateChildren(A + B, A, B, B).children == (A, B, B)
-            @test updateChildren(A⊗B, A, E).children == (A, E)
-            @test updateChildren(A[x, 1], A, fixedindices).children == (A, fixedindices,)
-            @test updateChildren(A[x, y]*D[y', z], (B[x, y]*D[y', z]).children...) == B[x, y]*D[y', z]
-            @test updateChildren(sin(ScalarVariable("z")), Tensor(2)) == sin(Tensor(2))
-            @test updateChildren(cos(ScalarVariable("z")), Tensor(2)) == cos(Tensor(2))
-            @test updateChildren(tan(ScalarVariable("z")), Tensor(2)) == tan(Tensor(2))
+            @test updatechildren(A + B, A, B, B).children == (A, B, B)
+            @test updatechildren(A⊗B, A, E).children == (A, E)
+            @test updatechildren(A[x, 1], A, fixedindices).children == (A, fixedindices,)
+            @test updatechildren(A[x, y]*D[y', z], (B[x, y]*D[y', z]).children...) == B[x, y]*D[y', z]
+            @test updatechildren(sin(ScalarVariable("z")), Tensor(2)) == sin(Tensor(2))
+            @test updatechildren(cos(ScalarVariable("z")), Tensor(2)) == cos(Tensor(2))
+            @test updatechildren(tan(ScalarVariable("z")), Tensor(2)) == tan(Tensor(2))
         end
     end
     @testset "Assignment" begin
+        @test updatevectorspace(A, V2=>RnSpace(2)) == VariableTensor(V3, RnSpace(2))
         # TODO Create a better node equality so that strings are not needed
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
     end
