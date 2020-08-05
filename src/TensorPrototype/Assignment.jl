@@ -7,17 +7,17 @@ function replaceshape(A::Node, pair::Pair)
     return tuple([i == first(pair) ? last(pair) : i for i in A.shape]...)
 end
 
-function updatevectorspace(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+Assignment = Union{Pair{VariableTensor{rank}, Tensor{T, rank}},
+    Pair{ScalarVariable, Scalar},
+    Pair{T1,T2}} where {T, rank, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
+
+function _assign(A::Union{Tensor{T, rank}, ConstantTensor{T, rank}}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
 end
 
-function updatevectorspace(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(A::Union{VariableTensor{rank}, ZeroTensor{rank}, DeltaTensor{rank}}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return VariableTensor(replaceshape(A, pair)...)
 end
-
-Assignment = Union{Pair{VariableTensor{rank}, Tensor{T, rank}},
-    Pair{ScalarVariable, Scalar},
-    Pair{VectorSpace, VectorSpace}} where {T, rank}
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
         Tensor{T, rank}}) where {T, rank}
@@ -26,10 +26,6 @@ function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
     else
         return A
     end
-end
-
-function _assign(A::TerminalTensor, pair::Pair{VectorSpace, VectorSpace})
-    return node
 end
 
 function _assign(node::Node, pair::Assignment)
@@ -42,10 +38,10 @@ function assign(node::Node, pair::Pair{VariableTensor{rank}, Tensor{T, rank}}) w
     A, B = pair
     for i in 1:length(A.shape)
         if A.shape[i] != B.shape[i]
-            if dim(A.shape[i]) !== nothing || get(vsassignments, A.shape[i], nothing) != B.shape[i]
-                throw(DomainError(B.shape, string("Invalid reshaping of ", A.shape, " to ", B.shape)))
+            if dim(A.shape[i]) !== nothing && get(vsassignments, A.shape[i], nothing) != B.shape[i]
+                throw(DomainError((A.shape[i], B.shape[i]), string("Invalid reshaping of ", A.shape, " to ", B.shape)))
             else
-                vsassignments[A.shape[i]] == B.shape[i]
+                vsassignments[A.shape[i]] = B.shape[i]
             end
         end
     end

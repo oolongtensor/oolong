@@ -17,6 +17,7 @@ B = Tensor(fill(1.2, (3, 2)), V3, V2)
 C = VariableTensor(Vj, Vi, Vi')
 D = VariableTensor(V2', Vi)
 E = VariableTensor(V2', V3', Vi)
+F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
 aTensor = Tensor(a)
@@ -104,10 +105,11 @@ aTensor = Tensor(a)
         end
     end
     @testset "Assignment" begin
-        @test updatevectorspace(A, V2=>RnSpace(2)) == VariableTensor(V3, RnSpace(2))
-        @test updatevectorspace(B, V2=>RnSpace(2)).shape == (V3, RnSpace(2))
+        @test assign(D, Vi=>RnSpace(2)) == VariableTensor(V2', RnSpace(2))
         @test assign(A, A=>B) == B
         # TODO Create a better node equality so that strings are not needed
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
+        @test_throws DomainError assign(D, D=>B)
+        @test assign(D, D=>F) == F
     end
 end
