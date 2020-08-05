@@ -1,13 +1,5 @@
 module TensorDSL
 
-include("TensorPrototype/Node.jl")
-include("TensorPrototype/VectorSpace.jl")
-include("TensorPrototype/Indices.jl")
-include("TensorPrototype/Tensors.jl")
-include("TensorPrototype/Operations.jl")
-include("TensorPrototype/Trigonometry.jl")
-include("TensorPrototype/Differentation.jl")
-
 export
 Node,
 
@@ -23,7 +15,18 @@ IndexingOperation, ComponentTensorOperation, componenttensor,
 
 SineOperation, sin, CosineOperation, cos, TangentOperation, tan,
 
-diff
+diff,
 
+updateChildren
+
+include("TensorPrototype/Node.jl")
+include("TensorPrototype/VectorSpace.jl")
+include("TensorPrototype/Indices.jl")
+include("TensorPrototype/Tensors.jl")
+include("TensorPrototype/Operations.jl")
+include("TensorPrototype/Trigonometry.jl")
+include("TensorPrototype/Differentation.jl")
+
+include("TreeVisitor/UpdateChildren.jl")
 
 end

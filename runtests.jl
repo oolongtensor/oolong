@@ -10,6 +10,7 @@ x = FreeIndex(V3, "x")
 y = FreeIndex(V2, "y")
 z = FreeIndex(Vi, "z")
 w = FreeIndex(Vj, "w")
+fixedindices = Indices(FixedIndex(V3, 2), FixedIndex(V2, 1))
 
 A = VariableTensor(V3, V2)
 B = Tensor(fill(1.2, (3, 2)), V3, V2)
@@ -90,5 +91,13 @@ aTensor = Tensor(a)
         @test Base.diff(Base.sin(aTensor), a) == Base.cos(aTensor)
         @test Base.diff(Base.cos(aTensor), a) == -Base.sin(aTensor)
         @test Base.diff(Base.sin(a * ScalarVariable("z")), a) == Base.cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
+    end
+    @testset "TreeVisitor" begin
+        @testset "Update children" begin
+            @test updateChildren(A + B, A, B, B).children == (A, B, B)
+            @test updateChildren(A⊗B, A, E).children == (A, E)
+            @test updateChildren(A[x, 1], A, fixedindices).children == (A, fixedindices,)
+            @test updateChildren(A[x, y]*D[y', z], (B[x, y]*D[y', z]).children...) == B[x, y]*D[y', z]
+        end
     end
 end
