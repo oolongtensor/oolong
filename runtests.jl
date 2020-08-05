@@ -111,5 +111,6 @@ aTensor = Tensor(a)
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
         @test_throws DomainError assign(D, D=>B)
         @test assign(D, D=>F) == F
+        @test assign(D⊗VariableTensor(Vi), D=>F) == F⊗VariableTensor(V3)
     end
 end
