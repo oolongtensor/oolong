@@ -8,18 +8,15 @@ RootNode(node::Node) = RootNode((node,))
 
 updatechildren(root::RootNode, node::Node) = RootNode((node,))
 
-function _traversal(node::Node, visitfn::Function, visitfnargs)
+function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothing})
     new_children = [_traversal(child, visitfn, visitfnargs) for child in node.children]
     return visitfn(updatechildren(node, new_children...), visitfnargs)
 end
 
-function traversal(node::Node, pretraversalfn::Function, visitfn::Function, pretraversalfnargs, visitfnargs)
+function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
+        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
     root = RootNode(node)
-    if pretraversalfnargs !== nothing
-        root = pretraversalfn(root, pretraversalfnargs)
-    else
-        root = pretraversalfn(root)
-    end
+    root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs) : pretraversalfn(root)
     root = _traversal(root, visitfn, visitfnargs)
     return root.children[1]
 end
