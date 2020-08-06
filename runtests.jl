@@ -12,11 +12,11 @@ z = FreeIndex(Vi, "z")
 w = FreeIndex(Vj, "w")
 fixedindices = Indices(FixedIndex(V3, 2), FixedIndex(V2, 1))
 
-A = VariableTensor(V3, V2)
+A = VariableTensor("A", V3, V2)
 B = Tensor(fill(1.2, (3, 2)), V3, V2)
-C = VariableTensor(Vj, Vi, Vi')
-D = VariableTensor(V2', Vi)
-E = VariableTensor(V2', V3', Vi)
+C = VariableTensor("C", Vj, Vi, Vi')
+D = VariableTensor("D", V2', Vi)
+E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
@@ -105,7 +105,7 @@ aTensor = Tensor(a)
         end
     end
     @testset "Assignment" begin
-        @test assign(D, Vi=>RnSpace(2)) == VariableTensor(V2', RnSpace(2))
+        @test assign(D, Vi=>RnSpace(2)) == VariableTensor("D", V2', RnSpace(2))
         @test_throws DomainError assign(D, V3=>Vi)
         @test assign(A, A=>B) == B
         # TODO Create a better node equality so that strings are not needed

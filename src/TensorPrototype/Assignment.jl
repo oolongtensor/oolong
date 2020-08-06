@@ -15,8 +15,12 @@ function _assign(A::Union{Tensor{T, rank}, ConstantTensor{T, rank}}, pair::Pair{
     return Tensor(A.value, replaceshape(A, pair)...)
 end
 
-function _assign(A::Union{VariableTensor{rank}, ZeroTensor{rank}, DeltaTensor{rank}}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(A::Union{ZeroTensor{rank}, DeltaTensor{rank}}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return VariableTensor(replaceshape(A, pair)...)
+end
+
+function _assign(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return VariableTensor(A.name, replaceshape(A, pair)...)
 end
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},

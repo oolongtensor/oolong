@@ -25,11 +25,12 @@ Scalar = Union{ScalarVariable, Base.Complex, Base.Real, AbstractTensor{0}}
 
 """Tensors of which we only know in which vector spaces their indices are."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
+    name::String
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
-    function VariableTensor(shape::Vararg{AbstractVectorSpace})
-        new{length(shape)}(shape, (), ())
+    function VariableTensor(name::String, shape::Vararg{AbstractVectorSpace})
+        new{length(shape)}(name, shape, (), ())
     end
 end
 
@@ -111,4 +112,6 @@ end
 
 Base.show(io::IO, A::Union{Tensor, ConstantTensor}) = printtensor(io, string(A.value, ", "), A)
 
-Base.show(io::IO, A::Union{VariableTensor, DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
+Base.show(io::IO, A::VariableTensor) = printtensor(io, string(A.name, ", "), A)
+
+Base.show(io::IO, A::Union{DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
