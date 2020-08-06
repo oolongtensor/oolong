@@ -19,8 +19,7 @@ diff,
 
 Assignment, assign,
 
-updatevectorspace, updatechildren,
-updatevectorspacee
+updatechildren, updatevectorspace
 
 include("TensorPrototype/Assignment.jl")
 include("TensorPrototype/Indices.jl")
@@ -30,7 +29,7 @@ include("TensorPrototype/Tensors.jl")
 include("TensorPrototype/Trigonometry.jl")
 include("TensorPrototype/VectorSpace.jl")
 include("TensorPrototype/Differentation.jl")
-include("TreeVisitor/UpdateChildren.jl")
+include("TreeVisitor/UpdateNodes.jl")
 include("TreeVisitor/Traversal.jl")
 
 end

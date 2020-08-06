@@ -1,6 +1,7 @@
 include("Tensors.jl")
 include("Indices.jl")
 include("../TreeVisitor/Traversal.jl")
+include("../TreeVisitor/UpdateNodes.jl")
 
 # Can't use replace(Array, Pair) because of #22
 function replaceshape(A::Node, pair::Pair)
@@ -30,6 +31,10 @@ end
 
 function _assign(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return VariableTensor(A.name, replaceshape(A, pair)...)
+end
+
+function _assign(indices::Indices, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return Indices([i.V == first(pair) ? updatevectorspace(i, last(pair)) : i for i in indices.indices]...)
 end
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},

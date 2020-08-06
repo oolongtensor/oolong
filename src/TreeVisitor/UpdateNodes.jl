@@ -39,3 +39,12 @@ end
 function updatechildren(ta::TangentOperation, A::AbstractTensor)
     return Base.tan(A)
 end
+
+## Indices
+function updatevectorspace(i::FreeIndex, V::AbstractVectorSpace)
+    return FreeIndex(V, i.name, i.id)
+end
+
+function updatevectorspace(i::FixedIndex, V::AbstractVectorSpace)
+    return FixedIndex(V, i.value)
+end
