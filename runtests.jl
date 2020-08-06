@@ -114,6 +114,7 @@ G = Tensor(arrayG, RnSpace(4))
             @test assign(DeltaTensor(Vi'), Vi=>V2) == DeltaTensor(V2')
             @test_throws DomainError assign(D, V3=>Vi)
             @test assign(D[1, z], Vi=>RnSpace(2)).freeindices == (FreeIndex(RnSpace(2), "z"),)
+            @test assign(componenttensor(D[y', z], z, y'), Vi=>RnSpace(2)).shape == (RnSpace(2), V2')
         end
         @testset "Tensors" begin
             @test assign(A, A=>B) == B
