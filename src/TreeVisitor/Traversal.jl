@@ -1,21 +1,20 @@
-include("../TensorPrototype/Node.jl")
-
 struct RootNode <: Node
-    children::Array{Node}
-    index::Int
+    children::Tuple{Node}
 end
 
-RootNode(node::Node) = RootNode([node], getnumberofnodes() + 1)
+RootNode(node::Node) = RootNode((node,))
 
-function _traversal(node::Node, visitfn!::Function)
-    visitfn!(node)
-    for child in node.children
-        _traversal(child, visitfn!)
-    end
+updatechildren(root::RootNode, node::Node) = RootNode((node,))
+
+function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothing})
+    new_children = [_traversal(child, visitfn, visitfnargs) for child in node.children]
+    return visitfn(updatechildren(node, new_children...), visitfnargs)
 end
 
-function traversal(node::Node, visitfn!::Function)
+function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
+        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
     root = RootNode(node)
-    _traversal(root, visitfn!)
+    root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs...) : pretraversalfn(root)
+    root = _traversal(root, visitfn, visitfnargs)
     return root.children[1]
 end

@@ -1,8 +1,3 @@
-include("Tensors.jl")
-include("Operations.jl")
-
-import Base
-
 struct SineOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor}

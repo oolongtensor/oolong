@@ -10,15 +10,19 @@ x = FreeIndex(V3, "x")
 y = FreeIndex(V2, "y")
 z = FreeIndex(Vi, "z")
 w = FreeIndex(Vj, "w")
+fixedindices = Indices(FixedIndex(V3, 2), FixedIndex(V2, 1))
 
-A = VariableTensor(V3, V2)
+A = VariableTensor("A", V3, V2)
 B = Tensor(fill(1.2, (3, 2)), V3, V2)
-C = VariableTensor(Vj, Vi, Vi')
-D = VariableTensor(V2', Vi)
-E = VariableTensor(V2', V3', Vi)
+C = VariableTensor("C", Vj, Vi, Vi')
+D = VariableTensor("D", V2', Vi)
+E = VariableTensor("E", V2', V3', Vi)
+F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
 aTensor = Tensor(a)
+arrayG = [cos(a), 4*sin(a), 4, 7im]
+G = Tensor(arrayG, RnSpace(4))
 
 @testset "TensorDSL.jl" begin
     @testset "Operations" begin
@@ -90,5 +94,45 @@ aTensor = Tensor(a)
         @test Base.diff(Base.sin(aTensor), a) == Base.cos(aTensor)
         @test Base.diff(Base.cos(aTensor), a) == -Base.sin(aTensor)
         @test Base.diff(Base.sin(a * ScalarVariable("z")), a) == Base.cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
+    end
+    @testset "TreeVisitor" begin
+        @testset "Update children" begin
+            @test updatechildren(A + B, A, B, B).children == (A, B, B)
+            @test updatechildren(A⊗B, A, E).children == (A, E)
+            @test updatechildren(A[x, 1], A, fixedindices).children == (A, fixedindices,)
+            @test updatechildren(A[x, y]*D[y', z], (B[x, y]*D[y', z]).children...) == B[x, y]*D[y', z]
+            @test updatechildren(sin(ScalarVariable("z")), Tensor(2)) == sin(Tensor(2))
+            @test updatechildren(cos(ScalarVariable("z")), Tensor(2)) == cos(Tensor(2))
+            @test updatechildren(tan(ScalarVariable("z")), Tensor(2)) == tan(Tensor(2))
+        end
+    end
+    @testset "Assignment" begin
+        @testset "Vector spaces" begin
+            @test assign(D, Vi=>RnSpace(2)) == VariableTensor("D", V2', RnSpace(2))
+            @test assign(ZeroTensor(Vi'), Vi'=>RnSpace(2)) == ZeroTensor(RnSpace(2))
+            @test assign(ConstantTensor(a, Vi'), Vi'=>RnSpace(2)) == ConstantTensor(a, RnSpace(2))
+            @test assign(DeltaTensor(Vi'), Vi=>V2) == DeltaTensor(V2')
+            @test_throws DomainError assign(D, V3=>Vi)
+            @test assign(D[1, z], Vi=>RnSpace(2)).freeindices == (FreeIndex(RnSpace(2), "z"),)
+            @test assign(componenttensor(D[y', z], z, y'), Vi=>RnSpace(2)).shape == (RnSpace(2), V2')
+        end
+        @testset "Tensors" begin
+            @test assign(A, A=>B) == B
+            # TODO Create a better node equality so that strings are not needed
+            @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
+            @test_throws DomainError assign(D, D=>B)
+            @test assign(A, A=>ConstantTensor(2, A.shape...)) == ConstantTensor(2, A.shape...)
+        end
+        @testset "Variables" begin
+            @test assign(aTensor, a=>4) == ConstantTensor(4)
+            @test assign(Tensor([a, 6], RnSpace(2)), a=>4).value == [4, 6]
+            @test assign(Tensor([cos(a), a], V2), a => 0).value == [cos(ZeroTensor()), 0]
+            @test assign(G, a=>0).value == [cos(ZeroTensor()), 4*sin(ZeroTensor()), 4, 7im]
+        end
+        @testset "Indices" begin
+            @test assign(Indices(x), x=>1) == Indices(FixedIndex(V3, 1))
+            @test string(assign(A[x], x=>1)) == string(A[1])
+            @test string(assign(A[x, y], x=>1)) == string(A[1, y])
+        end
     end
 end

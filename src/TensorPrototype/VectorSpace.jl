@@ -1,5 +1,3 @@
-import Base
-
 """Abstract vector space type"""
 abstract type AbstractVectorSpace end
 

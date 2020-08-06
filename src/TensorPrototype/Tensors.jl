@@ -1,9 +1,3 @@
-include("Node.jl")
-include("VectorSpace.jl")
-include("Indices.jl")
-
-import Base
-
 """A type for all the tensors and tensor like objects.
 
 The rank means the number of indices. For example AbstractTensor{0} is a
@@ -25,12 +19,18 @@ Scalar = Union{ScalarVariable, Base.Complex, Base.Real, AbstractTensor{0}}
 
 """Tensors of which we only know in which vector spaces their indices are."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
+    name::String
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
-    function VariableTensor(shape::Vararg{AbstractVectorSpace})
-        new{length(shape)}(shape, (), ())
+    function VariableTensor(name::String, shape::Vararg{AbstractVectorSpace})
+        new{length(shape)}(name, shape, (), ())
     end
+end
+
+function getVariableTensor(name::String)
+    global _tensorvariables
+    return _tensorvariables[name]
 end
 
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
@@ -86,7 +86,7 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     value::T
     function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar)
         if value == 0
-            return ZeroTensor(As)
+            return ZeroTensor(As...)
         end 
         new{T, length(As)}(As, (), (), value)
     end
@@ -111,4 +111,6 @@ end
 
 Base.show(io::IO, A::Union{Tensor, ConstantTensor}) = printtensor(io, string(A.value, ", "), A)
 
-Base.show(io::IO, A::Union{VariableTensor, DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
+Base.show(io::IO, A::VariableTensor) = printtensor(io, string(A.name, ", "), A)
+
+Base.show(io::IO, A::Union{DeltaTensor, ZeroTensor}) = printtensor(io, "", A)
