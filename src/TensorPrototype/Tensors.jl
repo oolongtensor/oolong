@@ -92,7 +92,7 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     value::T
     function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar)
         if value == 0
-            return ZeroTensor(As)
+            return ZeroTensor(As...)
         end 
         new{T, length(As)}(As, (), (), value)
     end

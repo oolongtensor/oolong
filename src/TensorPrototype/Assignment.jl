@@ -34,21 +34,23 @@ end
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
         T}) where {rank, T<:AbstractTensor{rank}}
-    if A == first(pair)
-        return last(pair)
-    else
-        return A
-    end
+    return A == first(pair) ? last(pair) : A
 end
 
 function _assign(A::ConstantTensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
-    if A.value == first(pair)
-        return ConstantTensor(last(pair), A.shape...)
-    end
+    return A.value == first(pair) ? ConstantTensor(last(pair), A.shape...) : A
 end
 
-function _assign(node::Node, pair::Assignment)
-    return node
+function _assign(s::ScalarVariable, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
+    return s == first(pair) ? last(pair) : s
+end
+
+function _assign(A::Tensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
+    return Tensor(assign.(A.value, pair), A.shape...)
+end
+
+function _assign(x::Union{Node, Number}, pair::Assignment)
+    return x
 end
 
 function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<:AbstractTensor{rank}}
@@ -72,4 +74,12 @@ end
 
 function assign(node::Node, pair::Assignment)
     return traversal(node, x-> x, _assign, nothing, pair)
+end
+
+function assign(i::ScalarVariable, pair::Assignment)
+    return _assign(i, pair)
+end
+
+function assign(i::Number, pair::Assignment)
+    return i
 end

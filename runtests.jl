@@ -21,6 +21,8 @@ F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = ScalarVariable("a")
 aTensor = Tensor(a)
+arrayG = [cos(a), 4*sin(a), 4, 7im]
+G = Tensor(arrayG, RnSpace(4))
 
 @testset "TensorDSL.jl" begin
     @testset "Operations" begin
@@ -121,6 +123,9 @@ aTensor = Tensor(a)
         end
         @testset "Variables" begin
             @test assign(aTensor, a=>4) == ConstantTensor(4)
+            @test assign(Tensor([a, 6], RnSpace(2)), a=>4).value == [4, 6]
+            @test assign(Tensor([cos(a), a], V2), a => 0).value == [cos(ZeroTensor()), 0]
+            @test assign(G, a=>0).value == [cos(ZeroTensor()), 4*sin(ZeroTensor()), 4, 7im]
         end
     end
 end
