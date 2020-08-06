@@ -11,7 +11,9 @@ end
 
 Assignment = Union{Pair{VariableTensor{rank}, T},
     Pair{ScalarVariable, S},
-    Pair{T1,T2}} where {rank, T<:AbstractTensor{rank}, S<:Scalar, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
+    Pair{T1,T2},
+    Pair{FreeIndex{T1}, FixedIndex{T1}},
+    Pair{FreeIndex{T1}, Int}} where {rank, T<:AbstractTensor{rank}, S<:Scalar, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
 function _assign(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
@@ -35,6 +37,10 @@ end
 
 function _assign(indices::Indices, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Indices([i.V == first(pair) ? updatevectorspace(i, last(pair)) : i for i in indices.indices]...)
+end
+
+function _assign(indices::Indices, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where T
+    return Indices([i.V == first(pair) ? last(pair) : i for i in indices.indices]...)
 end
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
@@ -77,7 +83,21 @@ function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, 
     return traversal(node, x-> x, _assign, nothing, pair)
 end
 
+function assign(node::Node, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where T
+    println("cooler")
+    if first(pair).V != last(pair).V
+        throw(Dimensionmismatch(string(first(pair).V, "!=", last(pair).V)))
+    end
+    return traversal(node, x-> x, _assign, nothing, pair)
+end
+
+function assign(node::Node, pair::Pair{FreeIndex{T}, Int}) where T
+    println("cool")
+    return assign(node, first(pair)=>FixedIndex(first(pair).V, last(pair)))
+end
+
 function assign(node::Node, pair::Assignment)
+    println("")
     return traversal(node, x-> x, _assign, nothing, pair)
 end
 

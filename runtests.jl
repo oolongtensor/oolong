@@ -129,5 +129,8 @@ G = Tensor(arrayG, RnSpace(4))
             @test assign(Tensor([cos(a), a], V2), a => 0).value == [cos(ZeroTensor()), 0]
             @test assign(G, a=>0).value == [cos(ZeroTensor()), 4*sin(ZeroTensor()), 4, 7im]
         end
+        @testset "Indices" begin
+            @test assign(Indices(x), x=>1) == Indices(FixedIndex(V3, 1))
+        end
     end
 end
