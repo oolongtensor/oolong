@@ -7,9 +7,9 @@ function replaceshape(A::Node, pair::Pair)
     return tuple([i == first(pair) ? last(pair) : i for i in A.shape]...)
 end
 
-Assignment = Union{Pair{VariableTensor{rank}, Tensor{T, rank}},
+Assignment = Union{Pair{VariableTensor{rank}, T},
     Pair{ScalarVariable, Scalar},
-    Pair{T1,T2}} where {T, rank, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
+    Pair{T1,T2}} where {rank, T<:AbstractTensor{rank}, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
 function _assign(A::Union{Tensor{T, rank}, ConstantTensor{T, rank}}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
@@ -20,7 +20,7 @@ function _assign(A::Union{VariableTensor{rank}, ZeroTensor{rank}, DeltaTensor{ra
 end
 
 function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
-        Tensor{T, rank}}) where {T, rank}
+        T}) where {rank, T<:AbstractTensor{rank}}
     if A == first(pair)
         return last(pair)
     else
@@ -32,7 +32,7 @@ function _assign(node::Node, pair::Assignment)
     return node
 end
 
-function assign(node::Node, pair::Pair{VariableTensor{rank}, Tensor{T, rank}}) where {rank, T}
+function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<:AbstractTensor{rank}}
     # Check that vector spaces match
     A, B = pair
     for i in 1:length(A.shape)

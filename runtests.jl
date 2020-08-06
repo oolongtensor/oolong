@@ -111,5 +111,6 @@ aTensor = Tensor(a)
         # TODO Create a better node equality so that strings are not needed
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
         @test_throws DomainError assign(D, D=>B)
+        @test assign(A, A=>ConstantTensor(2, A.shape...)) == ConstantTensor(2, A.shape...)
     end
 end
