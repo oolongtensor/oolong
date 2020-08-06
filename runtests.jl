@@ -131,6 +131,8 @@ G = Tensor(arrayG, RnSpace(4))
         end
         @testset "Indices" begin
             @test assign(Indices(x), x=>1) == Indices(FixedIndex(V3, 1))
+            @test string(assign(A[x], x=>1)) == string(A[1])
+            @test string(assign(A[x, y], x=>1)) == string(A[1, y])
         end
     end
 end
