@@ -50,7 +50,7 @@ function assign(node::Node, pair::Pair{VariableTensor{rank}, Tensor{T, rank}}) w
     else
         pretraversalargs = tuple([kv for kv in vsassignments]...)
     end
-    return traversal(node, assign, _assign, nothing, pair)
+    return traversal(node, assign, _assign, pretraversalargs, pair)
 end
 
 function assign(node::Node, pairs::Vararg{Assignment})
