@@ -1,6 +1,3 @@
-include("../TensorPrototype/Node.jl")
-include("UpdateNodes.jl")
-
 struct RootNode <: Node
     children::Tuple{Node}
 end

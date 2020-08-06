@@ -1,8 +1,3 @@
-include("Tensors.jl")
-include("Indices.jl")
-include("../TreeVisitor/Traversal.jl")
-include("../TreeVisitor/UpdateNodes.jl")
-
 # Can't use replace(Array, Pair) because of #22
 function replaceshape(A::Node, pair::Pair)
     dualspaces = [i == first(pair)' ? last(pair)' : i for i in A.shape]

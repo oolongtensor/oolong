@@ -1,7 +1,3 @@
-include("Trigonometry.jl")
-
-import Base
-
 """Differentiates A w.r.t y"""
 function Base.diff(A::Union{Tensor{T, 0}, ConstantTensor{T, 0}}, y::ScalarVariable) where T
     if A.value == y || A.value == [y]

@@ -1,8 +1,3 @@
-include("Node.jl")
-include("VectorSpace.jl")
-
-import Base
-
 """Abstract index supertype"""
 abstract type Index end
 

@@ -1,8 +1,3 @@
-include("Tensors.jl")
-include("Indices.jl")
-
-import Base
-
 """A supertype for all tensor operations."""
 abstract type Operation{rank} <: AbstractTensor{rank} end
 

@@ -1,9 +1,3 @@
-include("Node.jl")
-include("VectorSpace.jl")
-include("Indices.jl")
-
-import Base
-
 """A type for all the tensors and tensor like objects.
 
 The rank means the number of indices. For example AbstractTensor{0} is a

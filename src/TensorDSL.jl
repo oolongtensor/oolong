@@ -21,15 +21,16 @@ Assignment, assign,
 
 updatechildren, updatevectorspace
 
-include("TensorPrototype/Assignment.jl")
-include("TensorPrototype/Indices.jl")
+TensorDSL
 include("TensorPrototype/Node.jl")
-include("TensorPrototype/Operations.jl")
-include("TensorPrototype/Tensors.jl")
-include("TensorPrototype/Trigonometry.jl")
 include("TensorPrototype/VectorSpace.jl")
+include("TensorPrototype/Indices.jl")
+include("TensorPrototype/Tensors.jl")
+include("TensorPrototype/Operations.jl")
+include("TensorPrototype/Trigonometry.jl")
 include("TensorPrototype/Differentation.jl")
 include("TreeVisitor/UpdateNodes.jl")
 include("TreeVisitor/Traversal.jl")
+include("TensorPrototype/Assignment.jl")
 
 end
