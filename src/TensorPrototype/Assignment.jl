@@ -11,12 +11,20 @@ Assignment = Union{Pair{VariableTensor{rank}, T},
     Pair{ScalarVariable, Scalar},
     Pair{T1,T2}} where {rank, T<:AbstractTensor{rank}, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
-function _assign(A::Union{Tensor{T, rank}, ConstantTensor{T, rank}}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
 end
 
-function _assign(A::Union{ZeroTensor{rank}, DeltaTensor{rank}}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
-    return VariableTensor(replaceshape(A, pair)...)
+function _assign(A::ConstantTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return ConstantTensor(A.value, replaceshape(A, pair)...)
+end
+
+function _assign(A::ZeroTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return ZeroTensor(replaceshape(A, pair)...)
+end
+
+function _assign(A::DeltaTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return DeltaTensor(replaceshape(A, pair)...)
 end
 
 function _assign(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}

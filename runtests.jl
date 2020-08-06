@@ -106,6 +106,9 @@ aTensor = Tensor(a)
     end
     @testset "Assignment" begin
         @test assign(D, Vi=>RnSpace(2)) == VariableTensor("D", V2', RnSpace(2))
+        @test assign(ZeroTensor(Vi'), Vi'=>RnSpace(2)) == ZeroTensor(RnSpace(2))
+        @test assign(ConstantTensor(a, Vi'), Vi'=>RnSpace(2)) == ConstantTensor(a, RnSpace(2))
+        @test assign(DeltaTensor(Vi'), Vi=>V2) == DeltaTensor(V2')
         @test_throws DomainError assign(D, V3=>Vi)
         @test assign(A, A=>B) == B
         # TODO Create a better node equality so that strings are not needed
