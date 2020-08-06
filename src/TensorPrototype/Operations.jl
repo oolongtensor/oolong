@@ -1,10 +1,7 @@
-include("Tensors.jl")
-include("Indices.jl")
-
-import Base
-
+"""A supertype for all tensor operations."""
 abstract type Operation{rank} <: AbstractTensor{rank} end
 
+"""Symbolises summing over given indices."""
 struct IndexSumOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{VectorSpace}}
     children::Tuple{AbstractTensor, Indices}
@@ -13,7 +10,8 @@ end
 
 IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{length(A.shape)}(A.shape, (A, indices), freeindices)
 
-#  Check if we have have an upper and lower index - if so, repeat them
+"""Checks if we have have an upper and lower index. If there is, we create
+an IndexSumOperation node."""
 function contractioncheck(A::AbstractTensor)
     contractionindices = []
     for (i, index) in enumerate(A.freeindices)
@@ -28,6 +26,7 @@ function contractioncheck(A::AbstractTensor)
     return IndexSumOperation(A, Indices(contractionindices...), freeindices...)
 end
 
+"""A node symbolising addition of tensors."""
 struct AddOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
@@ -55,6 +54,7 @@ function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
+"""A node symbolising tensor outer product."""
 struct OuterProductOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
@@ -68,6 +68,10 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
+"""Shorthand for multiplication of two scalars. Returns an
+OuterProductOperation and simplifies for multiplication by zero or one.
+    
+If multiplying a number by a variable, the number must be first."""
 function Base.:*(x::Scalar, y::Union{ScalarVariable, AbstractTensor{0}})
     if x == 1 || x == ConstantTensor(1)
         return Tensor(y)
@@ -80,6 +84,7 @@ function Base.:*(x::Scalar, y::Union{ScalarVariable, AbstractTensor{0}})
     end
 end
 
+"""Shorthand for multiplying a tensor by a scalar."""
 function Base.:*(x::Scalar, A::AbstractTensor)
     if x == 1 || x == ConstantTensor(1)
         return A
@@ -95,6 +100,7 @@ function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
+"""A node symbolising indexing a tensor by its every dimension."""
 struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
@@ -104,6 +110,7 @@ struct IndexingOperation{rank} <: Operation{rank}
     end
 end
 
+"""A node symbolising component tensor."""
 struct ComponentTensorOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
@@ -113,6 +120,8 @@ struct ComponentTensorOperation{rank} <: Operation{rank}
     end
 end
 
+"""Creates a component tensor of A over indices. Indices must be a
+subset of the free indices of A."""
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     if length(indices) == 0
         return A
@@ -127,33 +136,43 @@ end
 
 idcounter = 0
 
-function Base.getindex(x::AbstractTensor, ys::Vararg{Index})
+"""Creates an IndexingOperation of A indexed by ys. If every dimension of A is
+not indexed, creates a ComponentTensorOperation over the unindexed dimensions."""
+function Base.getindex(A::AbstractTensor, ys::Vararg{Index})
     if length(ys) == 0
-        return x
+        return A
     end
-    if length(x.shape) < length(ys)
-        throw(BoundsError(x.shape, ys))
+    if length(A.shape) < length(ys)
+        throw(BoundsError(A.shape, ys))
     end
     for i in 1:length(ys)
-        if x.shape[i] != ys[i].V
-            throw(DimensionMismatch(string(ys[i], " is not in the vector space ", x.shape[i])))
+        if A.shape[i] != ys[i].V
+            throw(DimensionMismatch(string(ys[i], " is not in the vector space ", A.shape[i])))
         end
     end
     addedindices = []
     global idcounter
-    for i in 1:(length(x.shape) - length(ys))
-        push!(addedindices, FreeIndex(x.shape[length(ys) + i], "", idcounter))
+    for i in 1:(length(A.shape) - length(ys))
+        push!(addedindices, FreeIndex(A.shape[length(ys) + i], "", idcounter))
         idcounter += 1
     end
-    return componenttensor(IndexingOperation(x, Indices(ys..., addedindices...)), addedindices...)
+    return componenttensor(IndexingOperation(A, Indices(ys..., addedindices...)), addedindices...)
 end
 
-function Base.getindex(x::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
+"""A convenience function that allows indexing a tensor by an integer. The
+function creates a corresponding FixedIndex object in the appropiate vector
+space.
+
+Technically the function also does the same for a string, but this is not
+recommended, because the syntax makes no distinction between upper and
+lower indices.
+"""
+function Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     indexarray = []
     for i in 1:length(ys)
-        push!(indexarray, toindex(x.shape[i], ys[i]))
+        push!(indexarray, toindex(A.shape[i], ys[i]))
     end
-    return Base.getindex(x, indexarray...)
+    return Base.getindex(A, indexarray...)
 end
 
 function Base.show(io::IO, op::Operation, depth::Int)
