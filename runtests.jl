@@ -106,11 +106,10 @@ aTensor = Tensor(a)
     end
     @testset "Assignment" begin
         @test assign(D, Vi=>RnSpace(2)) == VariableTensor(V2', RnSpace(2))
+        @test_throws DomainError assign(D, V3=>Vi)
         @test assign(A, A=>B) == B
         # TODO Create a better node equality so that strings are not needed
         @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
         @test_throws DomainError assign(D, D=>B)
-        @test assign(D, D=>F) == F
-        @test assign(D⊗VariableTensor(Vi), D=>F) == F⊗VariableTensor(V3)
     end
 end

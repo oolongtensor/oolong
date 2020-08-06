@@ -15,8 +15,6 @@ end
 
 function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
         pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
-    println("cool")
-    println(visitfn)
     root = RootNode(node)
     root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs...) : pretraversalfn(root)
     root = _traversal(root, visitfn, visitfnargs)

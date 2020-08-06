@@ -33,29 +33,24 @@ function _assign(node::Node, pair::Assignment)
 end
 
 function assign(node::Node, pair::Pair{VariableTensor{rank}, Tensor{T, rank}}) where {rank, T}
-    # Check whether we need to assign vector spaces
-    vsassignments = Dict{AbstractVectorSpace,AbstractVectorSpace}()
+    # Check that vector spaces match
     A, B = pair
     for i in 1:length(A.shape)
         if A.shape[i] != B.shape[i]
-            if dim(A.shape[i]) !== nothing && get(vsassignments, A.shape[i], nothing) != B.shape[i]
-                throw(DomainError((A.shape[i], B.shape[i]), string("Invalid reshaping of ", A.shape, " to ", B.shape)))
-            else
-                vsassignments[A.shape[i]] = B.shape[i]
-            end
+            throw(DomainError((A.shape[i], B.shape[i]), string("Invalid reshaping of ", A.shape, " to ", B.shape)))
         end
     end
-    if isempty(vsassignments)
-        pretraversalargs = nothing
-    else
-        pretraversalargs = tuple([kv for kv in vsassignments]...)
-    end
-    return traversal(node, assign, _assign, pretraversalargs, pair)
+    return traversal(node, x-> x, _assign, nothing, pair)
 end
 
-function assign(node::Node, pairs::Vararg{Assignment})
-    for pair in pairs
-        node = traversal(node, x->x, _assign, nothing, pair)
+function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    # Check that vector spaces match
+    if dim(first(pair)) != dim(last(pair)) && dim(first(pair)) !== nothing
+        throw(DomainError((T1,T2), "Cannot assign different dimension vector spaces"))
     end
-    return node
+    return traversal(node, x-> x, _assign, nothing, pair)
+end
+
+function assign(node::Node, pair::Assignment)
+    return traversal(node, x-> x, _assign, nothing, pair)
 end
