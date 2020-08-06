@@ -4,7 +4,8 @@ include("../TreeVisitor/Traversal.jl")
 
 # Can't use replace(Array, Pair) because of #22
 function replaceshape(A::Node, pair::Pair)
-    return tuple([i == first(pair) ? last(pair) : i for i in A.shape]...)
+    dualspaces = [i == first(pair)' ? last(pair)' : i for i in A.shape]
+    return tuple([i == first(pair) ? last(pair) : i for i in dualspaces]...)
 end
 
 Assignment = Union{Pair{VariableTensor{rank}, T},
