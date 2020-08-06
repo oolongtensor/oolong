@@ -9,8 +9,8 @@ function replaceshape(A::Node, pair::Pair)
 end
 
 Assignment = Union{Pair{VariableTensor{rank}, T},
-    Pair{ScalarVariable, Scalar},
-    Pair{T1,T2}} where {rank, T<:AbstractTensor{rank}, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
+    Pair{ScalarVariable, S},
+    Pair{T1,T2}} where {rank, T<:AbstractTensor{rank}, S<:Scalar, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
 function _assign(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
@@ -38,6 +38,12 @@ function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
         return last(pair)
     else
         return A
+    end
+end
+
+function _assign(A::ConstantTensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
+    if A.value == first(pair)
+        return ConstantTensor(last(pair), A.shape...)
     end
 end
 
