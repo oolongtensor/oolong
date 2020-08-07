@@ -24,6 +24,8 @@ function updatechildren(comp::ComponentTensorOperation, A::AbstractTensor, indic
     return componenttensor(A, indices.indices...)
 end
 
+updatechildren(root::RootNode, node::Node) = RootNode((node,))
+
 ### Trigonometry ###
 
 function updatechildren(si::SineOperation, A::AbstractTensor)
