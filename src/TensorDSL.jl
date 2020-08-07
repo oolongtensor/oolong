@@ -21,10 +21,12 @@ Assignment, assign,
 
 updatechildren, updatevectorspace,
 
-GemNode, GemTensorNode, ScalarGem, GemTerminal, GemConstant, VariableGemIndex,
+GemNode, GemTensor, ScalarGem, GemTerminal, GemConstant, VariableGemIndex,
 GemIndex, GemIndexTypes, LiteralGemTensor, ZeroGemTensor, IdentityGemTensor,
 VariableGemTensor, shape, IndexSumGem, ComponentTensorGem, IndexedGem,
-MathFunctionGem, SumGem, ProductGem
+MathFunctionGem, SumGem, ProductGem,
+
+togem
 
 TensorDSL
 include("TensorPrototype/Node.jl")
@@ -38,5 +40,6 @@ include("TreeVisitor/UpdateNodes.jl")
 include("TreeVisitor/Traversal.jl")
 include("TensorPrototype/Assignment.jl")
 include("GemJL/Gem.jl")
+include("GemJL/ToGem.jl")
 
 end

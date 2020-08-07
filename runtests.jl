@@ -135,4 +135,9 @@ G = Tensor(arrayG, RnSpace(4))
             @test string(assign(A[x, y], x=>1)) == string(A[1, y])
         end
     end
+    @testset "To Gem" begin
+        @testset "Terminals" begin
+            @test togem(B) == LiteralGemTensor(B.value)
+        end
+    end
 end

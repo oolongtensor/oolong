@@ -1,10 +1,10 @@
 abstract type GemNode <: Node end
 
-abstract type GemTensorNode <: GemNode end
+abstract type GemTensor <: GemNode end
 
 abstract type ScalarGem <: GemNode end
 
-abstract type GemTerminal <: GemNode end
+abstract type GemTerminal <: GemTensor end
 
 abstract type GemConstant <: GemTerminal end
 
@@ -31,22 +31,28 @@ struct LiteralGemTensor{T<:Number} <: GemConstant
     children::Tuple{}
 end
 
-struct ZeroGemTensor{T<:Number} <: GemConstant
+LiteralGemTensor(value::Array{T}) where {T<:Number} = LiteralGemTensor{T}(value, ())
+
+struct ZeroGemTensor <: GemConstant
     shape::Tuple{Int}
     children::Tuple{}
 end
 
-struct IdentityGemTensor{T<:Number} <: GemConstant
+ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor(shape, ())
+
+struct IdentityGemTensor <: GemConstant
     shape::Tuple{Int}
     children::Tuple{}
 end
 
-LiteralGemTensor{T}(value::Array{T}) where (T<:Number) = LiteralGemTensor{T}(value, ())
+IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor(shape, ())
 
 struct VariableGemTensor <: GemTerminal
     shape::Tuple{Int}
     children::Tuple{}
 end
+
+VariableGemTensor(shape::Tuple{Int}) = VariableGemTensor(shape, ())
 
 function shape(A::LiteralGemTensor)
     return size(A.value)
