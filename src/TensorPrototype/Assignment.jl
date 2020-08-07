@@ -54,8 +54,12 @@ function _assign(A::Tensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
     return Tensor(assign.(A.value, pair), A.shape...)
 end
 
-function _assign(x::Union{Node, Number}, pair::Assignment)
+function _assign(x::Number, pair::Assignment, children::Vararg{Node})
     return x
+end
+
+function _assign(x::Node, pair::Assignment, children::Vararg{Node})
+    return updatechildren(x, children...)
 end
 
 function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<:AbstractTensor{rank}}
