@@ -1,10 +1,10 @@
 abstract type GemNode <: Node end
 
-abstract type GemTensor <: GemNode end
+abstract type GemTensor{rank} <: GemNode end
 
 abstract type ScalarExprGem <: GemNode end
 
-abstract type GemTerminal{rank} <: GemTensor end
+abstract type GemTerminal{rank} <: GemTensor{rank} end
 
 abstract type GemConstant{rank} <: GemTerminal{rank} end
 
@@ -82,7 +82,7 @@ struct IndexSumGem <: ScalarExprGem
     end
 end
 
-struct ComponentTensorGem <: GemTensor
+struct ComponentTensorGem{rank} <: GemTensor{rank}
     shape::Tuple{Int}
     children::Tuple{Scalar}
     indices::Tuple{Vararg{}}
@@ -90,7 +90,7 @@ struct ComponentTensorGem <: GemTensor
     function ComponentTensorGem(expr::Scalar, indices::Vararg{GemIndex})
         shape = tuple([index.extent for index in indices]...)
         # TODO check for zero expression
-        new(shape, expr, setdiff(expr.freeindices, indices))
+        new{length(shape)}(shape, expr, setdiff(expr.freeindices, indices))
     end
 end
 

@@ -22,6 +22,10 @@ function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
 end
 
+function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
+    return SumGem(children...)
+end
+
 function togem(node::Node)
     return traversal(node, x-> x, _togem, nothing, nothing)
 end
