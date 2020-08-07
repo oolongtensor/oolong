@@ -14,7 +14,7 @@ end
 function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
         pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
     root = RootNode(node)
-    root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs...) : pretraversalfn(root)
+    root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs) : pretraversalfn(root)
     root = _traversal(root, visitfn, visitfnargs)
     return root.children[1]
 end
