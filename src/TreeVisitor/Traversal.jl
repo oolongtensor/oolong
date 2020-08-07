@@ -8,8 +8,7 @@ updatechildren(root::RootNode, node::Node) = RootNode((node,))
 
 function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothing})
     new_children = [_traversal(child, visitfn, visitfnargs) for child in node.children]
-    new_node = updatechildren(node, new_children...)
-    return visitfnargs !== nothing ? visitfn(new_node, visitfnargs) : visitfn(new_node)
+    return visitfnargs !== nothing ? visitfn(node, visitfnargs, new_children...) : visitfn(node, new_children...)
 end
 
 function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
