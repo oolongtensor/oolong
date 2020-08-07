@@ -21,10 +21,10 @@ Assignment, assign,
 
 updatechildren, updatevectorspace,
 
-GemNode, GemTensor, ScalarGem, GemTerminal, GemConstant, VariableGemIndex,
-GemIndex, GemIndexTypes, LiteralGemTensor, ZeroGemTensor, IdentityGemTensor,
-VariableGemTensor, shape, IndexSumGem, ComponentTensorGem, IndexedGem,
-MathFunctionGem, SumGem, ProductGem,
+GemNode, GemTensor, ScalarGem, ScalarExprGem, GemTerminal, GemConstant,
+VariableGemIndex, GemIndex, GemIndexTypes, LiteralGemTensor, ZeroGemTensor,
+IdentityGemTensor, VariableGemTensor, shape, IndexSumGem, ComponentTensorGem,
+IndexedGem, MathFunctionGem, SumGem, ProductGem,
 
 togem
 

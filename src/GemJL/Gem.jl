@@ -2,11 +2,57 @@ abstract type GemNode <: Node end
 
 abstract type GemTensor <: GemNode end
 
-abstract type ScalarGem <: GemNode end
+abstract type ScalarExprGem <: GemNode end
 
-abstract type GemTerminal <: GemTensor end
+abstract type GemTerminal{rank} <: GemTensor end
 
-abstract type GemConstant <: GemTerminal end
+abstract type GemConstant{rank} <: GemTerminal{rank} end
+
+### Terminal nodes ###
+
+struct LiteralGemTensor{T<:Number, rank} <: GemConstant{rank} 
+    value::Array{T}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+rank(a::AbstractArray) =  ndims(a) > 1 ? ndims(a) : (length(a) == 1 ? 0 : 1)
+
+LiteralGemTensor(value::Array{T}) where T<:Number = LiteralGemTensor{T, rank(value)}(value, (), ())
+
+struct ZeroGemTensor{rank} <: GemConstant{rank}
+    shape::Tuple{Int}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor{rank(value)}(shape, (), ())
+
+struct IdentityGemTensor{rank} <: GemConstant{rank}
+    shape::Tuple{Int}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor{rank(value)}(shape, (), ())
+
+struct VariableGemTensor{rank} <: GemTerminal{rank}
+    shape::Tuple{Int}
+    children::Tuple{}
+    freeindices::Tuple{}
+end
+
+VariableGemTensor(shape::Tuple{Int}) = VariableGemTensor{length(shape)}(shape, (), ())
+
+function shape(A::LiteralGemTensor)
+    return size(A.value)
+end
+
+function shape(A::GemTensor)
+    return A.shape
+end
+
+ScalarGem = Union{Scalar, GemTerminal{0}}
 
 ### Indices ###
 
@@ -24,47 +70,9 @@ end
 
 GemIndexTypes = Union{Int, GemIndex}
 
-### Terminal nodes ###
-
-struct LiteralGemTensor{T<:Number} <: GemConstant
-    value::Array{T}
-    children::Tuple{}
-end
-
-LiteralGemTensor(value::Array{T}) where {T<:Number} = LiteralGemTensor{T}(value, ())
-
-struct ZeroGemTensor <: GemConstant
-    shape::Tuple{Int}
-    children::Tuple{}
-end
-
-ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor(shape, ())
-
-struct IdentityGemTensor <: GemConstant
-    shape::Tuple{Int}
-    children::Tuple{}
-end
-
-IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor(shape, ())
-
-struct VariableGemTensor <: GemTerminal
-    shape::Tuple{Int}
-    children::Tuple{}
-end
-
-VariableGemTensor(shape::Tuple{Int}) = VariableGemTensor(shape, ())
-
-function shape(A::LiteralGemTensor)
-    return size(A.value)
-end
-
-function shape(A::GemTensor)
-    return A.shape
-end
-
 ### Tensor nodes ###
 
-struct IndexSumGem <: ScalarGem
+struct IndexSumGem <: ScalarExprGem
     children::Tuple{Scalar}
     index::GemIndex
     freeindices::Tuple{Vararg{GemIndex}}
@@ -85,7 +93,7 @@ struct ComponentTensorGem <: GemTensor
     end
 end
 
-struct IndexedGem <: ScalarGem
+struct IndexedGem <: ScalarExprGem
     children::Tuple{GemTensor}
     indices::Tuple{Vararg{GemIndex}}
     freeindices::Tuple{Vararg{GemIndex}}
@@ -101,7 +109,7 @@ end
 
 ### Scalar operations ###
 
-struct MathFunctionGem <: ScalarGem
+struct MathFunctionGem <: ScalarExprGem
     name::String
     children::Tuple{Vararg{Scalar}}
     freeindices::Tuple{Vararg{GemIndex}}
@@ -110,7 +118,7 @@ struct MathFunctionGem <: ScalarGem
     end
 end
 
-struct SumGem <: ScalarGem
+struct SumGem <: ScalarExprGem
     children::Tuple{Vararg{ScalarGem}}
     freeindices::Tuple{Vararg{GemIndex}}
     function SumGem(exprs::Vararg{ScalarGem})
@@ -118,7 +126,7 @@ struct SumGem <: ScalarGem
     end
 end
 
-struct ProductGem <: ScalarGem
+struct ProductGem <: ScalarExprGem
     children::Tuple{ScalarGem, ScalarGem}
     freeindices::Tuple{Vararg{GemIndex}}
     function ProductGem(expr1::ScalarGem, expr2::ScalarGem)
