@@ -1,22 +1,54 @@
-abstract type GemNode end
+abstract type GemNode <: Node end
 
-abstract type GemTensor <: GemNode end
+abstract type GemTensorNode <: GemNode end
 
-struct LiteralGemTensor{T<:Number} <: GemTensor
+abstract type ScalarGem <: GemNode end
+
+abstract type GemTerminal <: GemNode end
+
+abstract type GemConstant <: GemTerminal end
+
+### Indices ###
+
+struct VariableGemIndex
+    expression::Scalar
+end
+
+```Free Index
+```
+struct GemIndex
+    extent::Int
+    name::String
+    id::Int
+end
+
+GemIndexTypes = Union{Int, GemIndex}
+
+### Terminal nodes ###
+
+struct LiteralGemTensor{T<:Number} <: GemConstant
     value::Array{T}
+    children::Tuple{}
+end
+
+struct ZeroGemTensor{T<:Number} <: GemConstant
+    shape::Tuple{Int}
+    children::Tuple{}
+end
+
+struct IdentityGemTensor{T<:Number} <: GemConstant
+    shape::Tuple{Int}
     children::Tuple{}
 end
 
 LiteralGemTensor{T}(value::Array{T}) where (T<:Number) = LiteralGemTensor{T}(value, ())
 
-struct PartiallyVariableGemTensor <: GemTensor
-    value::Array
+struct VariableGemTensor <: GemTerminal
+    shape::Tuple{Int}
     children::Tuple{}
 end
 
-PartiallyVariableGemTensor(value::AbstractArray) = PartiallyVariableGemTensor(value, ())
-
-function shape(A::Union{LiteralGemTensor, PartiallyVariableGemTensor})
+function shape(A::LiteralGemTensor)
     return size(A.value)
 end
 
@@ -24,57 +56,68 @@ function shape(A::GemTensor)
     return A.shape
 end
 
-struct VariableGemTensor <: GemTensor
-    shape::Tuple{Int}
-    children::Tuple{}
-end
+### Tensor nodes ###
 
-struct VariableGemIndex
-    # -1 for unknown
-    extent::Int
-    id::Int
-    name::String
-end
-
-struct GemVariable
-    id::Int
-    name::String
-end
-
-GemIndex = Union{Int, VariableGemIndex}
-
-struct IndexSumGem <: GemTensor
-    shape::Tuple{}
-    children::Tuple{GemTensor, Vararg{GemIndex}}
-end
-
-struct AddGem <: GemTensor
-    shape::Tuple{Int}
-    children::Tuple{Vararg{GemTensor}}
-    function AddGem(nodes::Vararg{GemTensor})
-        literals = tuple(filter!(x -> x isa LiteralGemTensor, [nodes...])...)
-        if isempty(literals)
-            new(shape(nodes[1]), nodes)
-        end
-        nonliterals = tuple(filter!(x -> !(x isa LiteralGemTensor), [nodes...])...)
-        literal = LiteralGemTensor(+([lit.value for lit in literals]...))
-        new(shape(nodes[1]), (literal, nonliterals...))
+struct IndexSumGem <: ScalarGem
+    children::Tuple{Scalar}
+    index::GemIndex
+    freeindices::Tuple{Vararg{GemIndex}}
+    function IndexSumGem(expr::Scalar, index::GemIndex)
+        new((expr,), index, expr.freeindices)
     end
-end
-
-struct OuterProductGem <: GemTensor
-    shape::Tuple{Int}
-    children::Tuple{GemTensor, GemTensor}
-end
-
-struct IndexingGem <: GemTensor
-    shape::Tuple{Int}
-    children::Tuple{AbstractTensor, Indices}
-    freeindices::Tuple{Vararg{FreeIndex}}
 end
 
 struct ComponentTensorGem <: GemTensor
     shape::Tuple{Int}
-    children::Tuple{AbstractTensor, Indices}
-    freeindices::Tuple{Vararg{FreeIndex}}
+    children::Tuple{Scalar}
+    indices::Tuple{Vararg{}}
+    freeindices::Tuple{Vararg{GemIndex}}
+    function ComponentTensorGem(expr::Scalar, indices::Vararg{GemIndex})
+        shape = tuple([index.extent for index in indices]...)
+        # TODO check for zero expression
+        new(shape, expr, setdiff(expr.freeindices, indices))
+    end
 end
+
+struct IndexedGem <: ScalarGem
+    children::Tuple{GemTensor}
+    indices::Tuple{Vararg{GemIndex}}
+    freeindices::Tuple{Vararg{GemIndex}}
+    function IndexedGem(expr::GemTensor, indices::Vararg{GemIndexTypes})
+        if indices isa Tuple{Int} && expr isa GemConstant
+            # TODO index the literal
+        end
+        new(expr, indices, (expr.freeindices..., [i for i in indices if i isa GemIndex]...))
+    end
+end
+
+# TOODO listtensor
+
+### Scalar operations ###
+
+struct MathFunctionGem <: ScalarGem
+    name::String
+    children::Tuple{Vararg{Scalar}}
+    freeindices::Tuple{Vararg{GemIndex}}
+    function MathFunctionGem(name::String, expr::Scalar)
+        new(name, (expr,), expr.freeindices)
+    end
+end
+
+struct SumGem <: ScalarGem
+    children::Tuple{Vararg{ScalarGem}}
+    freeindices::Tuple{Vararg{GemIndex}}
+    function SumGem(exprs::Vararg{ScalarGem})
+        new(exprs, (union([exprs.freeindices for expr in exprs])...))
+    end
+end
+
+struct ProductGem <: ScalarGem
+    children::Tuple{ScalarGem, ScalarGem}
+    freeindices::Tuple{Vararg{GemIndex}}
+    function ProductGem(expr1::ScalarGem, expr2::ScalarGem)
+        new((expr1, expr2), (union(expr1.freeindices, expr2.freeindices)...))
+    end
+end
+
+

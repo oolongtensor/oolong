@@ -19,7 +19,12 @@ diff,
 
 Assignment, assign,
 
-updatechildren, updatevectorspace
+updatechildren, updatevectorspace,
+
+GemNode, GemTensorNode, ScalarGem, GemTerminal, GemConstant, VariableGemIndex,
+GemIndex, GemIndexTypes, LiteralGemTensor, ZeroGemTensor, IdentityGemTensor,
+VariableGemTensor, shape, IndexSumGem, ComponentTensorGem, IndexedGem,
+MathFunctionGem, SumGem, ProductGem
 
 TensorDSL
 include("TensorPrototype/Node.jl")
@@ -32,5 +37,6 @@ include("TensorPrototype/Differentation.jl")
 include("TreeVisitor/UpdateNodes.jl")
 include("TreeVisitor/Traversal.jl")
 include("TensorPrototype/Assignment.jl")
+include("GemJL/Gem.jl")
 
 end
