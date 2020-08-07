@@ -144,6 +144,9 @@ G = Tensor(arrayG, RnSpace(4))
         @testset "Addition" begin
             @test togem(Tensor(1) + Tensor(2)).value == LiteralGemTensor(3).value
             @test togem(Tensor(1) + ZeroTensor() + DeltaTensor()).value == LiteralGemTensor(2).value
+            @test togem(B + B) isa SumGem
+            @test togem(B + B).children isa Tuple{IndexedGem, IndexedGem}
+            @test togem(B + B).children[1].children[1] == togem(B)
         end
     end
 end

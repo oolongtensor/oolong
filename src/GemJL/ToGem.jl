@@ -22,8 +22,16 @@ function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
 end
 
+_count = 0
+
 function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
-    return SumGem(children...)
+    global _count
+    indices = []
+    for i in 1:rank
+        push!(indices, GemIndex(shape(children[1])[i], "togem", _count))
+        _count += 1
+    end
+    return SumGem([IndexedGem(child, indices...) for child in children]...)
 end
 
 function togem(node::Node)

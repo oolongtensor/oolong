@@ -53,7 +53,7 @@ function shape(A::GemTensor)
     return A.shape
 end
 
-ScalarGem = Union{Scalar, GemTerminal{0}}
+ScalarGem = Union{ScalarExprGem, GemTerminal{0}}
 
 ### Indices ###
 
@@ -102,7 +102,7 @@ struct IndexedGem <: ScalarExprGem
         if indices isa Tuple{Int} && expr isa GemConstant
             # TODO index the literal
         end
-        new(expr, indices, (expr.freeindices..., [i for i in indices if i isa GemIndex]...))
+        new((expr,), indices, (expr.freeindices..., [i for i in indices if i isa GemIndex]...))
     end
 end
 
@@ -130,7 +130,11 @@ struct SumGem <: ScalarExprGem
             return literal
         end
         nonconstants = filter!(x -> !(x isa GemConstant), [exprs...])
-        new(tuple(literal, nonconstants...), tuple(union([exprs.freeindices for expr in nonconstants])...))
+        if literal.value[1] == 0
+            new(tuple(nonconstants...), (union([expr.freeindices for expr in nonconstants])...))
+        else
+            new(tuple(literal, nonconstants...), (union([expr.freeindices for expr in nonconstants])...))
+        end
     end
 end
 
