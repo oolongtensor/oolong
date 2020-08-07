@@ -138,6 +138,11 @@ G = Tensor(arrayG, RnSpace(4))
     @testset "To Gem" begin
         @testset "Terminals" begin
             @test togem(B) == LiteralGemTensor(B.value)
+            @test togem(ConstantTensor(3, V3, V2)) isa LiteralGemTensor
+            @test togem(ConstantTensor(3, V3, V2)).value == fill(3, (3,2))
+        end
+        @testset "Addition" begin
+            @test togem(Tensor(1) + Tensor(2)).value == LiteralGemTensor(3).value
         end
     end
 end

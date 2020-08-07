@@ -19,6 +19,7 @@ end
 rank(a::AbstractArray) =  ndims(a) > 1 ? ndims(a) : (length(a) == 1 ? 0 : 1)
 
 LiteralGemTensor(value::Array{T}) where T<:Number = LiteralGemTensor{T, rank(value)}(value, (), ())
+LiteralGemTensor(value::T) where T<:Number = LiteralGemTensor(fill(value, ()))
 
 struct ZeroGemTensor{rank} <: GemConstant{rank}
     shape::Tuple{Int}
@@ -26,7 +27,7 @@ struct ZeroGemTensor{rank} <: GemConstant{rank}
     freeindices::Tuple{}
 end
 
-ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor{rank(value)}(shape, (), ())
+ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor{length(shape)}(shape, (), ())
 
 struct IdentityGemTensor{rank} <: GemConstant{rank}
     shape::Tuple{Int}
@@ -34,7 +35,7 @@ struct IdentityGemTensor{rank} <: GemConstant{rank}
     freeindices::Tuple{}
 end
 
-IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor{rank(value)}(shape, (), ())
+IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor{length(shape)}(shape, (), ())
 
 struct VariableGemTensor{rank} <: GemTerminal{rank}
     shape::Tuple{Int}
@@ -122,7 +123,14 @@ struct SumGem <: ScalarExprGem
     children::Tuple{Vararg{ScalarGem}}
     freeindices::Tuple{Vararg{GemIndex}}
     function SumGem(exprs::Vararg{ScalarGem})
-        new(exprs, (union([exprs.freeindices for expr in exprs])...))
+        constants = filter!(x -> x isa GemConstant, [exprs...])
+        literal = LiteralGemTensor(sum([i isa LiteralGemTensor ?
+            i.value[1] : 1  for i in constants if !(i isa ZeroGemTensor)]))
+        if length(constants) >= length(exprs)
+            return literal
+        end
+        nonconstants = filter!(x -> !(x isa GemConstant), [exprs...])
+        new(tuple(literal, nonconstants...), tuple(union([exprs.freeindices for expr in nonconstants])...))
     end
 end
 
