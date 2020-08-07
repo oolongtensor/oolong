@@ -22,28 +22,28 @@ LiteralGemTensor(value::Array{T}) where T<:Number = LiteralGemTensor{T, rank(val
 LiteralGemTensor(value::T) where T<:Number = LiteralGemTensor(fill(value, ()))
 
 struct ZeroGemTensor{rank} <: GemConstant{rank}
-    shape::Tuple{Int}
+    shape::Tuple{Vararg{Int}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-ZeroGemTensor(shape::Tuple{Int}) = ZeroGemTensor{length(shape)}(shape, (), ())
+ZeroGemTensor(shape::Vararg{Int}) = ZeroGemTensor{length(shape)}(shape, (), ())
 
 struct IdentityGemTensor{rank} <: GemConstant{rank}
-    shape::Tuple{Int}
+    shape::Tuple{Vararg{Int}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-IdentityGemTensor(shape::Tuple{Int}) = IdentityGemTensor{length(shape)}(shape, (), ())
+IdentityGemTensor(shape::Vararg{Int}) = IdentityGemTensor{length(shape)}(shape, (), ())
 
 struct VariableGemTensor{rank} <: GemTerminal{rank}
-    shape::Tuple{Int}
+    shape::Tuple{Vararg{Int}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-VariableGemTensor(shape::Tuple{Int}) = VariableGemTensor{length(shape)}(shape, (), ())
+VariableGemTensor(shape::Tuple{Vararg{Int}}) = VariableGemTensor{length(shape)}(shape, (), ())
 
 function shape(A::LiteralGemTensor)
     return size(A.value)

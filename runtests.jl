@@ -143,6 +143,7 @@ G = Tensor(arrayG, RnSpace(4))
         end
         @testset "Addition" begin
             @test togem(Tensor(1) + Tensor(2)).value == LiteralGemTensor(3).value
+            @test togem(Tensor(1) + ZeroTensor() + DeltaTensor()).value == LiteralGemTensor(2).value
         end
     end
 end
