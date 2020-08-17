@@ -1,5 +1,7 @@
 module TensorDSL
 
+using DataStructures
+
 export
 Node,
 

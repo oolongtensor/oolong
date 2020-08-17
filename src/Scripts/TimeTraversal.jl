@@ -14,6 +14,6 @@ x = FreeIndex(V67, "x")
 y = FreeIndex(V3, "y")
 
 expr = componenttensor((A + B)[a, b, y, x] ⊗ C[x', y'], a, b) + componenttensor(B[a, b, 3, 1], a, b)
-expr = (expr - expr)⊗A
+expr = (expr - expr)⊗A + (3*expr)⊗B
+expr = ((expr[1] + expr[2])⊗B)[1, 3]
 @time assign(expr, B => Tensor(fill(2.4, (4,4,3,67)), V4, V4, V3, V67))
-println("Cool")
