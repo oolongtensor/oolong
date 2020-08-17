@@ -38,16 +38,31 @@ function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
 end
 
+function _togem(ou::OuterProductOperation, A::ScalarGem, B::ScalarGem)
+    return ProductGem(A, B)
+end
+
+function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{Vararg{FreeIndex}})
+    return ComponentTensorGem(expr, indices)
+end
+
 _count = 0
 
-function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
+```Takes a set of tensors and indices them by the same set of indices. Returns
+a list of the indexed tensors and the indices.
+```
+function _indextensors(tensors::Vararg{GemTensor{rank}}) where rank
     global _count
     indices = []
     for i in 1:rank
-        push!(indices, GemIndex(shape(children[1])[i], "togem", _count))
+        push!(indices, GemIndex(shape(tensors[1])[i], "togem", _count))
         _count += 1
     end
-    return SumGem([IndexedGem(child, indices...) for child in children]...)
+    return [IndexedGem(tensor, indices...) for tensor in tensors], indices
+end
+
+function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
+    return SumGem(_indextensors(children...)[1]...)
 end
 
 function togem(node::Node)
