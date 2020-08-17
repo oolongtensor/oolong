@@ -166,6 +166,9 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(componenttensor(B[x, y], x)).shape == (3,)
             @test togem(componenttensor(B[x, y], x)).freeindices == (GemIndex(dim(y.V), y.name, y.id),)
             @test togem(B[x]) isa ComponentTensorGem
+            @test togem(B[x] + Z[x]) isa ComponentTensorGem
+            @test togem(B[x] + Z[x]).children[1] isa SumGem
+            @test togem(B[x] + Z[x]).children[1].children[1] isa IndexedGem
         end
     end
 end
