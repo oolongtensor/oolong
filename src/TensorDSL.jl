@@ -29,8 +29,8 @@ include("TensorPrototype/Tensors.jl")
 include("TensorPrototype/Operations.jl")
 include("TensorPrototype/Trigonometry.jl")
 include("TensorPrototype/Differentation.jl")
-include("TreeVisitor/UpdateNodes.jl")
 include("TreeVisitor/Traversal.jl")
+include("TreeVisitor/UpdateNodes.jl")
 include("TensorPrototype/Assignment.jl")
 
 end
