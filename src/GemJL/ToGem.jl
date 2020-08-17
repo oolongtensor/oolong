@@ -46,6 +46,10 @@ function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{
     return ComponentTensorGem(expr, indices...)
 end
 
+function _togem(is::IndexSumOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
+    return IndexSumGem(expr, indices...)
+end
+
 _count = 0
 
 ```Takes a set of tensors and indices them by the same set of indices. Returns
@@ -75,6 +79,13 @@ end
 function _togem(comp::ComponentTensorOperation, A::ComponentTensorGem{rank},
         indices::Tuple{Vararg{GemIndex}}) where rank
     return ComponentTensorGem(A.children[1], tuple(union(A.children[1].indices, indices)...)...)
+end
+
+function _togem(is::IndexSumOperation, A::ComponentTensorGem{rank},
+        indices::Tuple{Vararg{GemIndex}}) where rank
+    indexed, indices = _indextensors(A)
+    return ComponentTensorGem(IndexSumOperation(indexed,
+        tuple(union(A.children[1].indices, indices)...)...))
 end
 
 

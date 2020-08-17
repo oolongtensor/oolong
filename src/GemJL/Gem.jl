@@ -111,6 +111,7 @@ struct IndexedGem <: ScalarExprGem
             elseif expr isa LiteralGemTensor
                 return LiteralGemTensor(fill(expr.value[indices...], ()))
             end
+        # TODO add a beta-reduction case for component tensor
         end
         new((expr,), indices, (expr.freeindices..., [i for i in indices if i isa GemIndex]...))
     end
