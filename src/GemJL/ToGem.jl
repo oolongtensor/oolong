@@ -42,8 +42,8 @@ function _togem(ou::OuterProductOperation, A::ScalarGem, B::ScalarGem)
     return ProductGem(A, B)
 end
 
-function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{Vararg{FreeIndex}})
-    return ComponentTensorGem(expr, indices)
+function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
+    return ComponentTensorGem(expr, indices...)
 end
 
 _count = 0
@@ -65,6 +65,18 @@ function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
     indexed, indices = _indextensors(children...)
     return ComponentTensorGem(SumGem(indexed...),  indices...)
 end
+
+function _togem(op::OuterProductOperation, A::GemTensor{rank}, B::GemTensor{rank}) where rank
+    indexedA, indicesA = _indextensors(A)
+    indexedB, indicesB = _indextensors(B)
+    return ComponentTensorGem(ProductGem(indexedA..., indexedB...),  indicesA..., indicesB...)
+end
+
+function _togem(comp::ComponentTensorOperation, A::ComponentTensorGem{rank},
+        indices::Tuple{Vararg{GemIndex}}) where rank
+    return ComponentTensorGem(comp.children[1], comp.children[1].indices..., indices...)
+end
+
 
 function togem(node::Node)
     return traversal(node, x-> x, _togem, nothing, nothing)

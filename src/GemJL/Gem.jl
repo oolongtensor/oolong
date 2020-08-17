@@ -85,12 +85,12 @@ end
 struct ComponentTensorGem{rank} <: GemTensor{rank}
     shape::Tuple{Vararg{Int}}
     children::Tuple{ScalarGem}
-    indices::Tuple{Vararg{}}
+    indices::Tuple{Vararg{GemIndex}}
     freeindices::Tuple{Vararg{GemIndex}}
     function ComponentTensorGem(expr::ScalarGem, indices::Vararg{GemIndex})
         shape = tuple([index.extent for index in indices]...)
         # TODO check for zero expression
-        new{length(shape)}(shape, (expr,), tuple(setdiff(expr.freeindices, indices)...))
+        new{length(shape)}(shape, (expr,), indices, tuple(setdiff(expr.freeindices, indices)...))
     end
 end
 
@@ -152,7 +152,7 @@ struct ProductGem <: ScalarExprGem
     children::Tuple{ScalarGem, ScalarGem}
     freeindices::Tuple{Vararg{GemIndex}}
     function ProductGem(expr1::ScalarGem, expr2::ScalarGem)
-        new((expr1, expr2), (union(expr1.freeindices, expr2.freeindices)...))
+        new((expr1, expr2), tuple(union(expr1.freeindices, expr2.freeindices)...))
     end
 end
 

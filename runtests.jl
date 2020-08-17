@@ -158,7 +158,14 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(I[1,1]).value == fill(1, ())
         end
         @testset "Product" begin
-            
+            @test togem(B⊗F) isa ComponentTensorGem
+            @test length(togem(B⊗F).indices) == 4
+        end
+        @testset "Component tensor" begin
+            @test togem(componenttensor(B[x, 1], x)).shape == (3,)
+            @test togem(componenttensor(B[x, y], x)).shape == (3,)
+            @test togem(componenttensor(B[x, y], x)).freeindices == (GemIndex(dim(y.V), y.name, y.id),)
+            @test togem(B[x]) isa ComponentTensorGem
         end
     end
 end
