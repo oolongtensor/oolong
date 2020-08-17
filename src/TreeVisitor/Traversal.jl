@@ -6,7 +6,7 @@ RootNode(node::Node) = RootNode((node,))
 
 function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothing}, visited)
     if haskey(visited, node)
-        return visited(node)
+        return visited[node]
     else
         new_children = [_traversal(child, visitfn, visitfnargs, visited) for child in node.children]
         result = visitfnargs !== nothing ?
