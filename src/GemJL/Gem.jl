@@ -96,11 +96,21 @@ end
 
 struct IndexedGem <: ScalarExprGem
     children::Tuple{GemTensor}
-    indices::Tuple{Vararg{GemIndex}}
+    indices::Tuple{Vararg{GemIndexTypes}}
     freeindices::Tuple{Vararg{GemIndex}}
     function IndexedGem(expr::GemTensor, indices::Vararg{GemIndexTypes})
-        if indices isa Tuple{Int} && expr isa GemConstant
-            # TODO index the literal
+        if indices isa Tuple{Vararg{Int}} && expr isa GemConstant
+            if expr isa ZeroGemTensor
+                return ZeroGemTensor()
+            elseif expr isa IdentityGemTensor
+                if all(indices[i] == indices[i+1] for i in 1:(length(indices)-1))
+                    return LiteralGemTensor(fill(1, ()))
+                else
+                    return ZeroGemTensor()
+                end
+            elseif expr isa LiteralGemTensor
+                return LiteralGemTensor(fill(expr.value[indices...], ()))
+            end
         end
         new((expr,), indices, (expr.freeindices..., [i for i in indices if i isa GemIndex]...))
     end
@@ -126,11 +136,11 @@ struct SumGem <: ScalarExprGem
         constants = filter!(x -> x isa GemConstant, [exprs...])
         literal = LiteralGemTensor(sum([i isa LiteralGemTensor ?
             i.value[1] : 1  for i in constants if !(i isa ZeroGemTensor)]))
-        if length(constants) >= length(exprs)
+        if length(constants) == length(exprs)
             return literal
         end
         nonconstants = filter!(x -> !(x isa GemConstant), [exprs...])
-        if literal.value[1] == 0
+        if all(literal.value .== 0)
             new(tuple(nonconstants...), (union([expr.freeindices for expr in nonconstants])...))
         else
             new(tuple(literal, nonconstants...), (union([expr.freeindices for expr in nonconstants])...))

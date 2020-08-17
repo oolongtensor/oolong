@@ -18,6 +18,22 @@ function _togem(root::RootNode, child::Vararg{Node})
     return updatechildren(root, child...)
 end
 
+function _togem(in::IndexingOperation, A::GemTensor{rank}, indices::Tuple{Vararg{GemIndexTypes}}) where rank
+    return IndexedGem(A, indices...)
+end
+
+function _togem(i::FreeIndex)
+    return GemIndex(dim(i.V), i.name, i.id)
+end
+
+function _togem(i::FixedIndex)
+    return i.value
+end
+
+function _togem(indices::Indices)
+    return tuple([_togem(i) for i in indices.indices]...)
+end
+
 function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
 end

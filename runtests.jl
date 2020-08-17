@@ -19,6 +19,7 @@ D = VariableTensor("D", V2', Vi)
 E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
+I = DeltaTensor(V3, V2)
 a = ScalarVariable("a")
 aTensor = Tensor(a)
 arrayG = [cos(a), 4*sin(a), 4, 7im]
@@ -147,6 +148,14 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(B + B) isa SumGem
             @test togem(B + B).children isa Tuple{IndexedGem, IndexedGem}
             @test togem(B + B).children[1].children[1] == togem(B)
+        end
+        @testset "Indexing" begin
+            @test togem(B[1,2]).value == fill(1.2, ())
+            @test togem(Z[1,2]) isa ZeroGemTensor
+            @test togem(B[1, y]) isa IndexedGem
+            @test togem(B[1, y]).freeindices == (GemIndex(dim(y.V), y.name, y.id),)
+            @test togem(I[1,2]) isa ZeroGemTensor
+            @test togem(I[1,1]).value == fill(1, ())
         end
     end
 end
