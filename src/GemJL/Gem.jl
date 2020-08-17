@@ -58,7 +58,7 @@ ScalarGem = Union{ScalarExprGem, GemTerminal{0}}
 ### Indices ###
 
 struct VariableGemIndex
-    expression::Scalar
+    expression::ScalarGem
 end
 
 ```Free Index
@@ -74,23 +74,23 @@ GemIndexTypes = Union{Int, GemIndex}
 ### Tensor nodes ###
 
 struct IndexSumGem <: ScalarExprGem
-    children::Tuple{Scalar}
+    children::Tuple{ScalarGem}
     index::GemIndex
     freeindices::Tuple{Vararg{GemIndex}}
-    function IndexSumGem(expr::Scalar, index::GemIndex)
+    function IndexSumGem(expr::ScalarGem, index::GemIndex)
         new((expr,), index, expr.freeindices)
     end
 end
 
 struct ComponentTensorGem{rank} <: GemTensor{rank}
-    shape::Tuple{Int}
-    children::Tuple{Scalar}
+    shape::Tuple{Vararg{Int}}
+    children::Tuple{ScalarGem}
     indices::Tuple{Vararg{}}
     freeindices::Tuple{Vararg{GemIndex}}
-    function ComponentTensorGem(expr::Scalar, indices::Vararg{GemIndex})
+    function ComponentTensorGem(expr::ScalarGem, indices::Vararg{GemIndex})
         shape = tuple([index.extent for index in indices]...)
         # TODO check for zero expression
-        new{length(shape)}(shape, expr, setdiff(expr.freeindices, indices))
+        new{length(shape)}(shape, (expr,), tuple(setdiff(expr.freeindices, indices)...))
     end
 end
 
@@ -122,9 +122,9 @@ end
 
 struct MathFunctionGem <: ScalarExprGem
     name::String
-    children::Tuple{Vararg{Scalar}}
+    children::Tuple{Vararg{ScalarGem}}
     freeindices::Tuple{Vararg{GemIndex}}
-    function MathFunctionGem(name::String, expr::Scalar)
+    function MathFunctionGem(name::String, expr::ScalarGem)
         new(name, (expr,), expr.freeindices)
     end
 end

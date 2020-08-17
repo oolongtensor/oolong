@@ -145,9 +145,9 @@ G = Tensor(arrayG, RnSpace(4))
         @testset "Addition" begin
             @test togem(Tensor(1) + Tensor(2)).value == LiteralGemTensor(3).value
             @test togem(Tensor(1) + ZeroTensor() + DeltaTensor()).value == LiteralGemTensor(2).value
-            @test togem(B + B) isa SumGem
-            @test togem(B + B).children isa Tuple{IndexedGem, IndexedGem}
-            @test togem(B + B).children[1].children[1] == togem(B)
+            @test togem(B + B) isa ComponentTensorGem
+            @test togem(B + B).children[1].children isa Tuple{IndexedGem, IndexedGem}
+            @test togem(B + B).children[1].children[1].children[1] == togem(B)
         end
         @testset "Indexing" begin
             @test togem(B[1,2]).value == fill(1.2, ())
@@ -156,6 +156,9 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(B[1, y]).freeindices == (GemIndex(dim(y.V), y.name, y.id),)
             @test togem(I[1,2]) isa ZeroGemTensor
             @test togem(I[1,1]).value == fill(1, ())
+        end
+        @testset "Product" begin
+            
         end
     end
 end

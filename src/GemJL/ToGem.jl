@@ -62,7 +62,8 @@ function _indextensors(tensors::Vararg{GemTensor{rank}}) where rank
 end
 
 function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
-    return SumGem(_indextensors(children...)[1]...)
+    indexed, indices = _indextensors(children...)
+    return ComponentTensorGem(SumGem(indexed...),  indices...)
 end
 
 function togem(node::Node)
