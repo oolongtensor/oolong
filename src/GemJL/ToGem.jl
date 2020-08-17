@@ -74,7 +74,7 @@ end
 
 function _togem(comp::ComponentTensorOperation, A::ComponentTensorGem{rank},
         indices::Tuple{Vararg{GemIndex}}) where rank
-    return ComponentTensorGem(comp.children[1], comp.children[1].indices..., indices...)
+    return ComponentTensorGem(A.children[1], tuple(union(A.children[1].indices, indices)...)...)
 end
 
 

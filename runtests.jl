@@ -169,6 +169,7 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(B[x] + Z[x]) isa ComponentTensorGem
             @test togem(B[x] + Z[x]).children[1] isa SumGem
             @test togem(B[x] + Z[x]).children[1].children[1] isa IndexedGem
+            @test length(togem(componenttensor(componenttensor(B[x,y], y), x)).indices) == 2
         end
     end
 end
