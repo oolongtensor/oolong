@@ -17,10 +17,11 @@ y = FreeIndex(V3, "y")
 z = FreeIndex(V67, "z")
 
 expr = componenttensor((A + B)[a, b, y, x] ⊗ C[x', y'], a, b) + componenttensor(B[a, b, 3, 1], a, b)
-expr = ((expr - expr)⊗A + (3*expr)⊗B) ⊗D
-expr = +([expr[1,2,3,4,1,1,i] for i in 1:1000]...)
+expr = ((expr - expr)⊗A + (3*expr)⊗B) ⊗ D
+expr = +([expr[1,2,3,4,1,1,i] for i in 1:50]...)
+expr = +([(D⊗expr)[i] for i in 1:1000]...) 
 @time assign(expr, B => Tensor(fill(2.4, (4,4,3,67)), V4, V4, V3, V67))
 println(expr.shape)
-# 14.922725 seconds (11.16 M allocations: 557.825 MiB, 2.01% gc time)
-# 6.296863 seconds (7.72 M allocations: 390.513 MiB, 2.03% gc time)for dict
-#  5.883682 seconds (6.25 M allocations: 311.498 MiB, 2.53% gc time)
+# 28.266366 seconds (11.97 M allocations: 598.007 MiB, 1.44% gc time) for Robin dict
+# 27.349857 seconds (8.26 M allocations: 417.624 MiB, 1.05% gc time) for dict
+# 84.748977 seconds (80.31 M allocations: 3.421 GiB, 13.89% gc time) for nothing
