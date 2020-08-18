@@ -78,7 +78,7 @@ struct IndexSumGem <: ScalarExprGem
     index::GemIndex
     freeindices::Tuple{Vararg{GemIndex}}
     function IndexSumGem(expr::ScalarGem, index::GemIndex)
-        new((expr,), index, expr.freeindices)
+        new((expr,), index, tuple(setdiff(expr.freeindices, index)...))
     end
 end
 

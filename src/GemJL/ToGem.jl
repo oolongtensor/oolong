@@ -51,7 +51,10 @@ function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{
 end
 
 function _togem(is::IndexSumOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
-    return IndexSumGem(expr, indices...)
+    for i in indices
+        expr = IndexSumGem(expr, i)
+    end
+    return expr
 end
 
 _count = 0
