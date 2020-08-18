@@ -14,6 +14,10 @@ function _togem(A::ZeroTensor)
     return ZeroGemTensor([dim(V) for V in A.shape]...)
 end
 
+function _togem(A::VariableTensor)
+    return VariableGemTensor([dim(V) for V in A.shape]...)
+end
+
 function _togem(root::RootNode, child::Vararg{Node})
     return updatechildren(root, child...)
 end
