@@ -77,6 +77,16 @@ function _togem(add::AddOperation, children::Vararg{GemTensor{rank}}) where rank
     return ComponentTensorGem(SumGem(indexed...),  indices...)
 end
 
+function _togem(op::OuterProductOperation, A::ScalarGem, B::GemTensor{rank}) where rank
+    indexed, indices = _indextensors(B)
+    return ComponentTensorGem(ProductGem(A, indexed...), indices...)
+end
+
+function _togem(op::OuterProductOperation, A::GemTensor{rank}, B::ScalarGem) where rank
+    indexed, indices = _indextensors(A)
+    return ComponentTensorGem(ProductGem(indexed..., B), indices...)
+end
+
 function _togem(op::OuterProductOperation, A::GemTensor{rank}, B::GemTensor{rank}) where rank
     indexedA, indicesA = _indextensors(A)
     indexedB, indicesB = _indextensors(B)
@@ -90,9 +100,12 @@ end
 
 function _togem(is::IndexSumOperation, A::ComponentTensorGem{rank},
         indices::Tuple{Vararg{GemIndex}}) where rank
-    indexed, indices = _indextensors(A)
-    return ComponentTensorGem(IndexSumOperation(indexed,
-        tuple(union(A.children[1].indices, indices)...)...))
+    indexed, componentindices = _indextensors(A)
+    A = indexed[1]
+    for i in indices
+        A = IndexSumGem(A, i)
+    end
+    return ComponentTensorGem(A, componentindices...)
 end
 
 

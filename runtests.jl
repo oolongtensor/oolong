@@ -171,5 +171,11 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(B[x] + Z[x]).children[1].children[1] isa IndexedGem
             @test length(togem(componenttensor(componenttensor(B[x,y], y), x)).indices) == 2
         end
+        @testset "Indexsum" begin
+            @test togem((A[x, y]*D[y', z])) isa IndexSumGem
+            @test togem(A[x, y]*E[y', x', z]).children[1] isa IndexSumGem
+            @test togem(A[x, y]*D[y']) isa ComponentTensorGem
+            @test togem(A[x, y]*D[y']).freeindices == (GemIndex(dim(x.V), x.name, x.id),)
+        end
     end
 end

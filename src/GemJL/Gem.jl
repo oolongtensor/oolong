@@ -22,28 +22,28 @@ LiteralGemTensor(value::Array{T}) where T<:Number = LiteralGemTensor{T, rank(val
 LiteralGemTensor(value::T) where T<:Number = LiteralGemTensor(fill(value, ()))
 
 struct ZeroGemTensor{rank} <: GemConstant{rank}
-    shape::Tuple{Vararg{Int}}
+    shape::Tuple{Vararg{Union{Int, Nothing}}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-ZeroGemTensor(shape::Vararg{Int}) = ZeroGemTensor{length(shape)}(shape, (), ())
+ZeroGemTensor(shape::Vararg{Union{Int, Nothing}}) = ZeroGemTensor{length(shape)}(shape, (), ())
 
 struct IdentityGemTensor{rank} <: GemConstant{rank}
-    shape::Tuple{Vararg{Int}}
+    shape::Tuple{Vararg{Union{Int, Nothing}}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-IdentityGemTensor(shape::Vararg{Int}) = IdentityGemTensor{length(shape)}(shape, (), ())
+IdentityGemTensor(shape::Vararg{Union{Int, Nothing}}) = IdentityGemTensor{length(shape)}(shape, (), ())
 
 struct VariableGemTensor{rank} <: GemTerminal{rank}
-    shape::Tuple{Vararg{Int}}
+    shape::Tuple{Vararg{Union{Int, Nothing}}}
     children::Tuple{}
     freeindices::Tuple{}
 end
 
-VariableGemTensor(shape::Tuple{Vararg{Int}}) = VariableGemTensor{length(shape)}(shape, (), ())
+VariableGemTensor(shape::Vararg{Union{Int, Nothing}}) = VariableGemTensor{length(shape)}(shape, (), ())
 
 function shape(A::LiteralGemTensor)
     return size(A.value)
@@ -64,7 +64,7 @@ end
 ```Free Index
 ```
 struct GemIndex
-    extent::Int
+    extent::Union{Int, Nothing}
     name::String
     id::Int
 end
@@ -78,12 +78,12 @@ struct IndexSumGem <: ScalarExprGem
     index::GemIndex
     freeindices::Tuple{Vararg{GemIndex}}
     function IndexSumGem(expr::ScalarGem, index::GemIndex)
-        new((expr,), index, tuple(setdiff(expr.freeindices, index)...))
+        new((expr,), index, tuple(setdiff(expr.freeindices, (index,))...))
     end
 end
 
 struct ComponentTensorGem{rank} <: GemTensor{rank}
-    shape::Tuple{Vararg{Int}}
+    shape::Tuple{Vararg{Union{Int, Nothing}}}
     children::Tuple{ScalarGem}
     indices::Tuple{Vararg{GemIndex}}
     freeindices::Tuple{Vararg{GemIndex}}
