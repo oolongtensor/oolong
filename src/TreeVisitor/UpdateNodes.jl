@@ -2,6 +2,8 @@ function updatechildren(node::Node)
     return node
 end
 
+updatechildren(root::RootNode, node::Node) = RootNode((node,))
+
 ### Operations ###
 
 function updatechildren(indexsum::IndexSumOperation, A::AbstractTensor, indices::Indices)
