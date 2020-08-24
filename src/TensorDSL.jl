@@ -28,7 +28,7 @@ SineOperation, sin, CosineOperation, cos, TangentOperation, tan,
 
 diff,
 
-Assignment, assign,
+Assignment, assign, RootNode,
 
 updatechildren, updatevectorspace,
 

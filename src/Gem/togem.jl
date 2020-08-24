@@ -2,12 +2,13 @@ function _togem(A::Tensor{T}) where T<:Number
     global gem
     return gem.Literal(A.value)
 end
-#=
+
 function _togem(A::ConstantTensor{T}) where T<:Number
-    return LiteralGemTensor(fill(A.value, tuple([dim(V) for V in A.shape]...)))
+    # TODO this does not work if any vector space has unknown dimension
+    return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
 end
 
-function _togem(A::DeltaTensor)
+#=function _togem(A::DeltaTensor)
     return IdentityGemTensor([dim(V) for V in A.shape]...)
 end
 

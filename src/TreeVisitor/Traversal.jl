@@ -1,8 +1,9 @@
 struct RootNode <: Node
     children::Tuple{Any}
+    function RootNode(node)
+        new((node,))
+    end
 end
-
-RootNode(node) = RootNode((node,))
 
 function _traversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing}, visited)
     if haskey(visited, node)
