@@ -1,4 +1,15 @@
+__precompile__()
 module TensorDSL
+
+using PyCall
+
+const gem = PyNULL()
+const tsfc = PyNULL()
+
+function __init__()
+    copy!(tsfc, pyimport("tsfc"))
+    copy!(gem, tsfc.fem.gem)
+end
 
 export
 Node,
@@ -19,7 +30,9 @@ diff,
 
 Assignment, assign,
 
-updatechildren, updatevectorspace
+updatechildren, updatevectorspace,
+
+togem, gem, tsfc
 
 TensorDSL
 include("TensorPrototype/Node.jl")
@@ -32,5 +45,6 @@ include("TensorPrototype/Differentation.jl")
 include("TreeVisitor/Traversal.jl")
 include("TreeVisitor/UpdateNodes.jl")
 include("TensorPrototype/Assignment.jl")
+include("Gem/togem.jl")
 
 end

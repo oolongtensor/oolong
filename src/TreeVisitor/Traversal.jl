@@ -1,10 +1,10 @@
 struct RootNode <: Node
-    children::Tuple{Node}
+    children::Tuple{Any}
 end
 
-RootNode(node::Node) = RootNode((node,))
+RootNode(node) = RootNode((node,))
 
-function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothing}, visited)
+function _traversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing}, visited)
     if haskey(visited, node)
         return visited[node]
     else
@@ -16,11 +16,11 @@ function _traversal(node::Node, visitfn::Function, visitfnargs::Union{Any, Nothi
     end
 end
 
-function traversal(node::Node, pretraversalfn::Function, visitfn::Function,
+function traversal(node, pretraversalfn::Function, visitfn::Function,
         pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
     root = RootNode(node)
     root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs) : pretraversalfn(root)
-    visited = Dict{Node, Node}()
+    visited = Dict{Any, Any}()
     root = _traversal(root, visitfn, visitfnargs, visited)
     return root.children[1]
 end

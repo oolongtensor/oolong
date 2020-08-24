@@ -135,4 +135,7 @@ G = Tensor(arrayG, RnSpace(4))
             @test string(assign(A[x, y], x=>1)) == string(A[1, y])
         end
     end
+    @testset "Gem" begin
+        @test togem(B) == gem.Literal(fill(1.2, (3, 2)))
+    end
 end
