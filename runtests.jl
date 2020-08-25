@@ -139,6 +139,8 @@ G = Tensor(arrayG, RnSpace(4))
         @testset "Tensors" begin
             @test togem(B) == gem.Literal(fill(1.2, (3, 2)))
             @test togem(ConstantTensor(1, V3, V2)) == gem.Literal(fill(1, (3,2)))
+            @test togem(D) == gem.Variable("D", (2, nothing))
+            @test togem(Z) == gem.Zero((3, 2))
         end
     end
 end

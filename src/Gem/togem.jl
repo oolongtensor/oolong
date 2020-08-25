@@ -1,5 +1,4 @@
 function _togem(A::Tensor{T}) where T<:Number
-    global gem
     return gem.Literal(A.value)
 end
 
@@ -10,16 +9,16 @@ end
 
 #=function _togem(A::DeltaTensor)
     return IdentityGemTensor([dim(V) for V in A.shape]...)
-end
+end=#
 
 function _togem(A::ZeroTensor)
-    return ZeroGemTensor([dim(V) for V in A.shape]...)
+    return gem.Zero(tuple([dim(V) for V in A.shape]...))
 end
 
 function _togem(A::VariableTensor)
-    return VariableGemTensor([dim(V) for V in A.shape]...)
+    return gem.Variable(A.name, tuple([dim(V) for V in A.shape]...))
 end
-
+#=
 function _togem(root::RootNode, child::Vararg{Node})
     return updatechildren(root, child...)
 end

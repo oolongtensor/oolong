@@ -6,6 +6,7 @@ using PyCall
 const gem = PyNULL()
 const tsfc = PyNULL()
 
+# https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
     copy!(tsfc, pyimport("tsfc"))
     copy!(gem, tsfc.fem.gem)
