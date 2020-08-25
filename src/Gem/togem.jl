@@ -18,10 +18,12 @@ end
 function _togem(A::VariableTensor)
     return gem.Variable(A.name, tuple([dim(V) for V in A.shape]...))
 end
-#=
-function _togem(in::IndexingOperation, A::GemTensor{rank}, indices::Tuple{Vararg{GemIndexTypes}}) where rank
-    return IndexedGem(A, indices...)
-end=#
+
+GemIndexTypes = Union{Int, PyObject}
+
+function _togem(in::IndexingOperation, A::PyObject, indices::Tuple{Vararg{GemIndexTypes}})
+    return gem.Indexed(A, indices)
+end
 
 freeIndices = Dict{FreeIndex, PyObject}()
 
@@ -38,7 +40,8 @@ function _togem(i::FreeIndex)
 end
 
 function _togem(i::FixedIndex)
-    return i.value
+    # Python starts indexing from 0 and Julia from 1
+    return i.value - 1
 end
 
 function _togem(indices::Indices)

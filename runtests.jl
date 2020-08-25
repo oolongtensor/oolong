@@ -143,7 +143,10 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(Z) == gem.Zero((3, 2))
         end
         @testset "Indices" begin
-            @test togem(Indices(y, z, FixedIndex(V2, 1))) == togem(Indices(y, z, FixedIndex(V2, 1)))
+            @test togem(Indices(y, z, FixedIndex(V2, 2))) == togem(Indices(y, z, FixedIndex(V2, 2)))
+            @test togem(D[1, z]).free_indices == togem(Indices(z))
+            @test togem(D[1, z]).children == (togem(D),)
+            @test togem(D[1, z]).multiindex == togem(Indices(FixedIndex(V2', 1), z))
         end
     end
 end
