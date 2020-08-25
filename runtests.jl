@@ -161,6 +161,7 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(A + B).children[1].children[1].children[1] == togem(A)
             @test togem(A + B).children[1].children[2].children[1] == togem(B)
             @test togem(B + A + A).children[1].children[1].children[1].children[1] == togem(B)
+            @test Set(togem(A[x, y] + B[1,2]).free_indices) == Set(togem(Indices(x, y)))
         end
     end
 end
