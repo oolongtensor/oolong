@@ -47,6 +47,21 @@ end
 function _togem(indices::Indices)
     return tuple([_togem(i) for i in indices.indices]...)
 end
+
+```Helper function that indexes tensors. Returns the tensors and the indices.
+```
+function _toscalar(tensors::Tuple{Vararg{PyObject}})
+    indices = []
+    for i in 1:length(tensors[1].shape)
+        push!(indices, gem.Index(nothing, tensors[1].shape[i]))
+    end
+    return [gem.Indexed(tensor, indices) for tensor in tensors], indices
+end
+
+function _toscalar(tensor::PyObject)
+    scalars, indices = _toscalar((tensor,))
+    return scalars[1], indices
+end
 #=
 function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
@@ -54,12 +69,17 @@ end
 
 function _togem(ou::OuterProductOperation, A::ScalarGem, B::ScalarGem)
     return ProductGem(A, B)
-end
+end=#
 
-function _togem(comp::ComponentTensorOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
-    return ComponentTensorGem(expr, indices...)
+function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
+    if expr.shape != ()
+        expr, new_indices = _toscalar(expr)
+        return gem.ComponentTensor(expr, (new_indices..., indices...))
+    else
+        return gem.ComponentTensor(expr, indices)
+    end
 end
-
+#=
 function _togem(is::IndexSumOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
     for i in indices
         expr = IndexSumGem(expr, i)

@@ -147,6 +147,13 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(D[1, z]).free_indices == togem(Indices(z))
             @test togem(D[1, z]).children == (togem(D),)
             @test togem(D[1, z]).multiindex == togem(Indices(FixedIndex(V2', 1), z))
+            @test togem(Tensor(collect(1:5), RnSpace(5))[2]) == gem.Literal(2)
+        end
+        @testset "componenttensor" begin
+            @test togem(A[x]).shape == (2,)
+            @test togem(A[x]).free_indices == togem(Indices(x))
+            @test togem(componenttensor(A[x],x)).shape == (2,3)
+            @test togem(componenttensor(A[x],x)).free_indices == ()
         end
     end
 end
