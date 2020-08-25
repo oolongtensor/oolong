@@ -5,11 +5,14 @@ using PyCall
 
 const gem = PyNULL()
 const tsfc = PyNULL()
+const isinst = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
     copy!(tsfc, pyimport("tsfc"))
     copy!(gem, tsfc.fem.gem)
+    copy!(isinst, pybuiltin("isinstance"))
+    println(isinst)
 end
 
 export
@@ -33,7 +36,7 @@ Assignment, assign, RootNode,
 
 updatechildren, updatevectorspace,
 
-togem, gem, tsfc
+togem, gem, tsfc, isinst
 
 TensorDSL
 include("TensorPrototype/Node.jl")

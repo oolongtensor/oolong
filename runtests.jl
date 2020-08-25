@@ -158,6 +158,8 @@ H = VariableTensor("H", V2', RnSpace(5))
         end
         @testset "Addition" begin
             @test togem(A + B).shape == (3, 2)
+            @test isinst(togem(A + B), gem.ComponentTensor)
+            @test isinst(togem(A + B).children[1], gem.Sum)
             @test togem(A + B + A).shape == (3, 2)
             @test togem(A + B).children[1].children[1].children[1] == togem(A)
             @test togem(A + B).children[1].children[2].children[1] == togem(B)
@@ -167,9 +169,15 @@ H = VariableTensor("H", V2', RnSpace(5))
         @testset "Product" begin
             @test togem(A⊗B).shape == (3, 2, 3, 2)
             @test togem(A⊗B).children[1].children[2].children[1] == togem(B)
+            @test isinst(togem(A⊗B), gem.ComponentTensor)
+            @test isinst(togem(A⊗B).children[1], gem.Product)
         end
         @testset "Index sum" begin
             @test togem(A[x, y]⊗F[y', 1]).free_indices == togem(Indices(x))
+            @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
+            @test isinst(togem(A[x, y]⊗F[y']), gem.ComponentTensor)
+            @test isinst(togem(A[x, y]⊗F[y']).children[1], gem.IndexSum)
+            @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
         end
     end
 end

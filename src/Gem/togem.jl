@@ -97,7 +97,7 @@ end
 
 function _togem(is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
     indexed, new_indices = _toscalar(expr)
-    return gem.ComponentTensor(gem.IndexSum(expr, indices), new_indices)
+    return gem.ComponentTensor(gem.IndexSum(indexed, indices), new_indices)
 end
 
 function _togem(root::RootNode, node)
