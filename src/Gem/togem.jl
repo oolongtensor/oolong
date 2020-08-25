@@ -16,6 +16,11 @@ function _togem(A::ZeroTensor)
 end
 
 function _togem(A::VariableTensor)
+    for V in A.shape
+        if dim(V) === nothing
+            throw(DomainError(A.shape, "The tensor must have a known shape."))
+        end
+    end
     return gem.Variable(A.name, tuple([dim(V) for V in A.shape]...))
 end
 
@@ -32,6 +37,8 @@ function _togem(i::FreeIndex)
     # Gem gives indices their owns ids, and we want them to be consistent
     if haskey(freeIndices, i)
         return freeIndices[i]
+    elseif haskey(freeIndices, i')
+        return freeIndices[i']
     else
         gemindex = gem.Index(i.name, dim(i.V))
         freeIndices[i] = gemindex
@@ -87,17 +94,11 @@ function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{V
         return gem.ComponentTensor(expr, indices)
     end
 end
-#=
-function _togem(is::IndexSumOperation, expr::ScalarGem, indices::Tuple{Vararg{GemIndex}})
-    for i in indices
-        expr = IndexSumGem(expr, i)
-    end
-    return expr
+
+function _togem(is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
+    indexed, new_indices = _toscalar(expr)
+    return gem.ComponentTensor(gem.IndexSum(expr, indices), new_indices)
 end
-
-_count = 0
-
-=#
 
 function _togem(root::RootNode, node)
     return RootNode(node)

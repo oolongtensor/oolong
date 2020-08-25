@@ -23,6 +23,7 @@ a = ScalarVariable("a")
 aTensor = Tensor(a)
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
+H = VariableTensor("H", V2', RnSpace(5))
 
 @testset "TensorDSL.jl" begin
     @testset "Operations" begin
@@ -139,14 +140,14 @@ G = Tensor(arrayG, RnSpace(4))
         @testset "Tensors" begin
             @test togem(B) == gem.Literal(fill(1.2, (3, 2)))
             @test togem(ConstantTensor(1, V3, V2)) == gem.Literal(fill(1, (3,2)))
-            @test togem(D) == gem.Variable("D", (2, nothing))
+            @test togem(H) == gem.Variable("H", (2, 5))
             @test togem(Z) == gem.Zero((3, 2))
         end
         @testset "Indices" begin
             @test togem(Indices(y, z, FixedIndex(V2, 2))) == togem(Indices(y, z, FixedIndex(V2, 2)))
-            @test togem(D[1, z]).free_indices == togem(Indices(z))
-            @test togem(D[1, z]).children == (togem(D),)
-            @test togem(D[1, z]).multiindex == togem(Indices(FixedIndex(V2', 1), z))
+            @test togem(H[y', 1]).free_indices == togem(Indices(y'))
+            @test togem(H[y', 1]).children == (togem(H),)
+            @test togem(H[y', 1]).multiindex == togem(Indices(y', FixedIndex(RnSpace(5), 1)))
             @test togem(Tensor(collect(1:5), RnSpace(5))[2]) == gem.Literal(2)
         end
         @testset "componenttensor" begin
@@ -156,7 +157,7 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(componenttensor(A[x],x)).free_indices == ()
         end
         @testset "Addition" begin
-            @test togem(A+B).shape == (3, 2)
+            @test togem(A + B).shape == (3, 2)
             @test togem(A + B + A).shape == (3, 2)
             @test togem(A + B).children[1].children[1].children[1] == togem(A)
             @test togem(A + B).children[1].children[2].children[1] == togem(B)
@@ -166,6 +167,9 @@ G = Tensor(arrayG, RnSpace(4))
         @testset "Product" begin
             @test togem(A⊗B).shape == (3, 2, 3, 2)
             @test togem(A⊗B).children[1].children[2].children[1] == togem(B)
+        end
+        @testset "Index sum" begin
+            @test togem(A[x, y]⊗F[y', 1]).free_indices == togem(Indices(x))
         end
     end
 end
