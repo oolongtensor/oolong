@@ -19,16 +19,22 @@ function _togem(A::VariableTensor)
     return gem.Variable(A.name, tuple([dim(V) for V in A.shape]...))
 end
 #=
-function _togem(root::RootNode, child::Vararg{Node})
-    return updatechildren(root, child...)
-end
-
 function _togem(in::IndexingOperation, A::GemTensor{rank}, indices::Tuple{Vararg{GemIndexTypes}}) where rank
     return IndexedGem(A, indices...)
-end
+end=#
+
+freeIndices = Dict{FreeIndex, PyObject}()
 
 function _togem(i::FreeIndex)
-    return GemIndex(dim(i.V), i.name, i.id)
+    global freeIndices
+    # Gem gives indices their owns ids, and we want them to be consistent
+    if haskey(freeIndices, i)
+        return freeIndices[i]
+    else
+        gemindex = gem.Index(i.name, dim(i.V))
+        freeIndices[i] = gemindex
+        return gemindex
+    end
 end
 
 function _togem(i::FixedIndex)
@@ -38,7 +44,7 @@ end
 function _togem(indices::Indices)
     return tuple([_togem(i) for i in indices.indices]...)
 end
-
+#=
 function _togem(add::AddOperation, children::Vararg{ScalarGem})
     return SumGem(children...)
 end

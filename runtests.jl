@@ -142,5 +142,8 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(D) == gem.Variable("D", (2, nothing))
             @test togem(Z) == gem.Zero((3, 2))
         end
+        @testset "Indices" begin
+            @test togem(Indices(y, z, FixedIndex(V2, 1))) == togem(Indices(y, z, FixedIndex(V2, 1)))
+        end
     end
 end
