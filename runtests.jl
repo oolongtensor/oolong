@@ -155,5 +155,12 @@ G = Tensor(arrayG, RnSpace(4))
             @test togem(componenttensor(A[x],x)).shape == (2,3)
             @test togem(componenttensor(A[x],x)).free_indices == ()
         end
+        @testset "Addition" begin
+            @test togem(A+B).shape == (3, 2)
+            @test togem(A + B + A).shape == (3, 2)
+            @test togem(A + B).children[1].children[1].children[1] == togem(A)
+            @test togem(A + B).children[1].children[2].children[1] == togem(B)
+            @test togem(B + A + A).children[1].children[1].children[1].children[1] == togem(B)
+        end
     end
 end

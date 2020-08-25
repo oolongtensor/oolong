@@ -62,11 +62,16 @@ function _toscalar(tensor::PyObject)
     scalars, indices = _toscalar((tensor,))
     return scalars[1], indices
 end
-#=
-function _togem(add::AddOperation, children::Vararg{ScalarGem})
-    return SumGem(children...)
-end
 
+function _togem(add::AddOperation, children::Vararg{PyObject})
+    indexed, indices = _toscalar(children)
+    sum = indexed[1]
+    for expr in indexed[2:end]
+        sum += expr
+    end
+    return gem.ComponentTensor(sum, indices)
+end
+#=
 function _togem(ou::OuterProductOperation, A::ScalarGem, B::ScalarGem)
     return ProductGem(A, B)
 end=#
