@@ -72,10 +72,12 @@ function _togem(add::AddOperation, children::Vararg{PyObject})
     return gem.ComponentTensor(sum, indices)
 end
 
-#=
-function _togem(ou::OuterProductOperation, A::ScalarGem, B::ScalarGem)
-    return ProductGem(A, B)
-end=#
+
+function _togem(ou::OuterProductOperation, A::PyObject, B::PyObject)
+    exprA, indicesA = _toscalar(A)
+    exprB, indicesB = _toscalar(B)
+    return gem.ComponentTensor(gem.Product(exprA, exprB), (indicesA..., indicesB...))
+end
 
 function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
     if expr.shape != ()
