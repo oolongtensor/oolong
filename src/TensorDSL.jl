@@ -11,6 +11,7 @@ const loopy = PyNULL()
 const np = PyNULL()
 const generate_loopy = PyNULL()
 const gemtoloopy = PyNULL()
+const executekernel = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
@@ -29,6 +30,8 @@ function __init__()
     generate_loopy = tsfcloopy.generate
     import numpy as np
     import loopy
+    import pyopencl as cl
+    import pyopencl.clrandom
 
     def createreturnvalue(gem_expr):
         indices = tuple(gem.Index(n) for n in gem_expr.shape) 
@@ -42,8 +45,17 @@ function __init__()
         arg = loopy.GlobalArg('R', dtype=np.float64, shape=tuple(i.extent for i in outer_indices))
         imperoc = impero_utils.compile_gem([(return_value, gem.Indexed(gem_expr, indices))], outer_indices)
         return generate_loopy(imperoc, [arg], np.dtype(np.float64))
+
+    def executekernel(knl):
+        ctx = cl.create_some_context(interactive=False)
+        queue = cl.CommandQueue(ctx)
+        data = cl.clrandom.rand(queue, 3, dtype=np.float64)
+        evt, (out,) = knl(queue, data)
+        return out.get()
+
     """
     copy!(gemtoloopy, py"gemtoloopy")
+    copy!(executekernel, py"executekernel")
 end
 
 export
@@ -69,7 +81,7 @@ updatechildren, updatevectorspace,
 
 togem, toloopy,
 
-loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy
+loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, executekernel
 
 TensorDSL
 include("TensorPrototype/Node.jl")
