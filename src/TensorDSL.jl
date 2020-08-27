@@ -31,17 +31,16 @@ function __init__()
     import loopy
 
     def createreturnvalue(gem_expr):
+        indices = tuple(gem.Index(n) for n in gem_expr.shape) 
         free_shape = tuple(i.extent for i in gem_expr.free_indices)
-        indices = tuple(Index(n) for n in gem_expr.shape)
-        return gem.ComponentTensor(
-            gem.Indexed(
-                gem.Variable('R', gem_expr.shape + free_shape), indices + gem_expr.free_indices),
-            indices)
+        return gem.Indexed(gem.Variable('R', gem_expr.shape + free_shape),
+            indices + gem_expr.free_indices), indices
 
     def gemtoloopy(gem_expr):
-        return_value = createreturnvalue(gem_expr)
-        arg = loopy.GlobalArg('R', dtype=np.float64, shape=(6,))
-        imperoc = impero_utils.compile_gem([(return_value, gem_expr)], gem_expr.free_indices)
+        return_value, indices = createreturnvalue(gem_expr)
+        outer_indices = indices + gem_expr.free_indices
+        arg = loopy.GlobalArg('R', dtype=np.float64, shape=tuple(i.extent for i in outer_indices))
+        imperoc = impero_utils.compile_gem([(return_value, gem.Indexed(gem_expr, indices))], outer_indices)
         return generate_loopy(imperoc, [arg], np.dtype(np.float64))
     """
     copy!(gemtoloopy, py"gemtoloopy")
