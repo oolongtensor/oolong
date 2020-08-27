@@ -30,10 +30,20 @@ function __init__()
     import numpy as np
     import loopy
     
-    def gemtoloopy(gem_expr):
-        return_value = gem.Variable("R", gem_expr.shape)
-        arg = loopy.GlobalArg('R', dtype=np.float64, shape=(6,))
+    def createreturnvalue(elements, multiindices):
+        shapes = tuple(element.shape for element in elements)
+        def expression(restricted):
+            return gem.Indexed(gem.reshape(restricted, *shapes),
+                           tuple(chain(*multiindices)))
+        u_shape = np.array([np.prod(shape, dtype=int) for shape in shapes])
+        slicez = [[slice(s) for s in u_shape]]
+        c_shape = tuple(u_shape)
+        varexp = gem.Variable("A", c_shape)
+        return prune([expression(gem.view(varexp, *slices)) for slices in slicez])
 
+    def gemtoloopy(gem_expr):
+        return_value = createreturnvalue([gem_expr], gem_expr.free_indices)
+        arg = loopy.GlobalArg('R', dtype=np.float64, shape=(6,))
         imperoc = impero_utils.compile_gem([(return_value, gem_expr)], gem_expr.free_indices)
         return generate_loopy(imperoc, [arg], np.dtype(np.float64))
     """
