@@ -180,4 +180,10 @@ H = VariableTensor("H", V2', RnSpace(5))
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
         end
     end
+    # These tests only check that no errors are occurring, they do not check correctness.
+    @testset "toloopy" begin
+        @test toloopy(A + B) !== nothing
+        @test toloopy(A[x, y]⊗F[y']) !== nothing
+        @test toloopy((B + A + A)[1]) !== nothing
+    end
 end

@@ -62,7 +62,7 @@ function _toscalar(tensors::Tuple{Vararg{PyObject}})
     for i in 1:length(tensors[1].shape)
         push!(indices, gem.Index(nothing, tensors[1].shape[i]))
     end
-    return [gem.Indexed(tensor, indices) for tensor in tensors], indices
+    return [gem.Indexed(tensor, indices) for tensor in tensors], tuple(indices...)
 end
 
 function _toscalar(tensor::PyObject)
@@ -76,7 +76,7 @@ function _togem(add::AddOperation, children::Vararg{PyObject})
     for expr in indexed[2:end]
         sum += expr
     end
-    return gem.ComponentTensor(sum, indices)
+    return gem.ComponentTensor(sum, tuple(indices...))
 end
 
 
