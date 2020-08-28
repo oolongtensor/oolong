@@ -23,8 +23,10 @@ function __init__()
     copy!(np, pyimport("numpy"))
     copy!(generate_loopy, pyimport("tsfc.loopy").generate)
     py"""
+    from firedrake.parameters import parameters
     import tsfc
     gem = tsfc.fem.gem
+    from gem import indices as make_indices
     impero_utils = tsfc.fem.gem.impero_utils
     import tsfc.loopy as tsfcloopy
     generate_loopy = tsfcloopy.generate
@@ -33,18 +35,29 @@ function __init__()
     import pyopencl as cl
     import pyopencl.clrandom
 
-    def createreturnvalue(gem_expr):
-        indices = tuple(gem.Index(n) for n in gem_expr.shape) 
-        free_shape = tuple(i.extent for i in gem_expr.free_indices)
-        return gem.Indexed(gem.Variable('R', gem_expr.shape + free_shape),
-            indices + gem_expr.free_indices), indices
+    # Copy pasted from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
+    def gem_to_loopy(gem_expr):
+        '''Method encapsulating stage 2.
+        Converts the gem expression dag into imperoc first, and then further into loopy.
+        :return slate_loopy: loopy kernel for slate operations.
+        '''
+        # Creation of return variables for outer loopy
+        shape = gem_expr.shape if len(gem_expr.shape) != 0 else (1,)
+        idx = make_indices(len(shape))
+        indexed_gem_expr = gem.Indexed(gem_expr, idx)
+        arg = [loopy.GlobalArg("output", shape=shape)]
+        ret_vars = [gem.Indexed(gem.Variable("output", shape), idx)]
 
-    def gemtoloopy(gem_expr):
-        return_value, indices = createreturnvalue(gem_expr)
-        outer_indices = indices + gem_expr.free_indices
-        arg = loopy.GlobalArg('R', dtype=np.float64, shape=tuple(i.extent for i in outer_indices))
-        imperoc = impero_utils.compile_gem([(return_value, gem.Indexed(gem_expr, indices))], outer_indices)
-        return generate_loopy(imperoc, [arg], np.dtype(np.float64))
+        preprocessed_gem_expr = impero_utils.preprocess_gem([indexed_gem_expr])
+
+        # glue assignments to return variable
+        assignments = list(zip(ret_vars, preprocessed_gem_expr))
+
+        # Part A: slate to impero_c
+        impero_c = impero_utils.compile_gem(assignments, (), remove_zeros=False)
+
+        # Part B: impero_c to loopy
+        return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "slate_loopy", [])
 
     def executekernel(knl):
         ctx = cl.create_some_context(interactive=False)
@@ -54,7 +67,7 @@ function __init__()
         return out.get()
 
     """
-    copy!(gemtoloopy, py"gemtoloopy")
+    copy!(gemtoloopy, py"gem_to_loopy")
     copy!(executekernel, py"executekernel")
 end
 
