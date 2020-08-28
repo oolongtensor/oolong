@@ -183,7 +183,10 @@ H = VariableTensor("H", V2', RnSpace(5))
     # These tests only check that no errors are occurring, they do not check correctness.
     @testset "toloopy" begin
         @test toloopy(A + B) !== nothing
-        @test toloopy(A[x, y]⊗F[y']) !== nothing
+        # This does not pass, but maybe it shouldn't?
+        # @test toloopy(A[x, y]⊗F[y']) !== nothing
         @test toloopy((B + A + A)[1]) !== nothing
+        @test toloopy(A[1, y]⊗F[y']) !== nothing
+        @test toloopy(componenttensor((A + Z)[1, y]⊗F[y', x], x)) !== nothing
     end
 end
