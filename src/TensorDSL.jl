@@ -11,7 +11,7 @@ const loopy = PyNULL()
 const np = PyNULL()
 const generate_loopy = PyNULL()
 const gemtoloopy = PyNULL()
-const executekernel = PyNULL()
+const execute = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
@@ -32,8 +32,7 @@ function __init__()
     generate_loopy = tsfcloopy.generate
     import numpy as np
     import loopy
-    import pyopencl as cl
-    import pyopencl.clrandom
+    from loopy.codegen import generate_code_for_a_single_kernel
 
     # Copy pasted from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
     def gem_to_loopy(gem_expr):
@@ -59,16 +58,14 @@ function __init__()
         # Part B: impero_c to loopy
         return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "slate_loopy", [])
 
-    def executekernel(knl):
-        ctx = cl.create_some_context(interactive=False)
-        queue = cl.CommandQueue(ctx)
-        data = cl.clrandom.rand(queue, 3, dtype=np.float64)
-        evt, (out,) = knl(queue, data)
-        return out.get()
+    def execute(gem_expr):
+        knl = gem_to_loopy(gem_expr)
+        return loopy.generate_code_v2(knl).device_code()
 
     """
     copy!(gemtoloopy, py"gem_to_loopy")
-    copy!(executekernel, py"executekernel")
+    copy!(execute, py"execute")
+
 end
 
 export
@@ -94,7 +91,7 @@ updatechildren, updatevectorspace,
 
 togem, toloopy,
 
-loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, executekernel
+loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, execute
 
 TensorDSL
 include("TensorPrototype/Node.jl")
