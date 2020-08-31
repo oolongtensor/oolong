@@ -33,6 +33,7 @@ function __init__()
     import numpy as np
     import loopy
     from loopy.codegen import generate_code_for_a_single_kernel
+    from pyop2 import op2
 
     # Copy pasted from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
     def gem_to_loopy(gem_expr):
@@ -56,15 +57,20 @@ function __init__()
         impero_c = impero_utils.compile_gem(assignments, (), remove_zeros=False)
 
         # Part B: impero_c to loopy
-        return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "slate_loopy", [])
+        return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "gem_loopy", [])
 
     def execute(gem_expr):
         knl = gem_to_loopy(gem_expr)
-        return loopy.generate_code_v2(knl).device_code()
-
+        code = loopy.generate_code_v2(knl).device_code()
+        code = code.replace('void gem_loopy', 'static void gem_loopy')
+        knl = op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
+        zero_mat = op2.Dat(op2.Set(1) ** gem_expr.shape, np.zeros(gem_expr.shape))
+        op2.par_loop(knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
+        return zero_mat.data
     """
     copy!(gemtoloopy, py"gem_to_loopy")
     copy!(execute, py"execute")
+    # code = loopy.generate_code_v2(loopy_merged).device_code()
 
 end
 
