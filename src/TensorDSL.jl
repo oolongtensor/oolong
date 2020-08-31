@@ -6,22 +6,16 @@ using PyCall
 const gem = PyNULL()
 const tsfc = PyNULL()
 const isinst = PyNULL()
-const impero_utils = PyNULL()
-const loopy = PyNULL()
-const np = PyNULL()
-const generate_loopy = PyNULL()
 const gemtoloopy = PyNULL()
 const executegem = PyNULL()
+const createop2knl = PyNULL()
+const executeop2knl = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
     copy!(tsfc, pyimport("tsfc"))
     copy!(gem, tsfc.fem.gem)
     copy!(isinst, pybuiltin("isinstance"))
-    copy!(impero_utils, gem.impero_utils)
-    copy!(loopy, pyimport("loopy"))
-    copy!(np, pyimport("numpy"))
-    copy!(generate_loopy, pyimport("tsfc.loopy").generate)
     py"""
     from firedrake.parameters import parameters
     import tsfc
@@ -62,7 +56,6 @@ function __init__()
     def loopy_to_op2knl(knl):
         code = loopy.generate_code_v2(knl).device_code()
         code = code.replace('void gem_loopy', 'static void gem_loopy')
-        print(code)
         return op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
 
     def execute_op2knl(op2knl, shape):
@@ -70,12 +63,17 @@ function __init__()
         op2.par_loop(op2knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
         return zero_mat.data
 
+    def create_op2knl(gem_expr):
+        return loopy_to_op2knl(gem_to_loopy(gem_expr))
+
     def execute_gem(gem_expr):
-        return execute_op2knl(loopy_to_op2knl(gem_to_loopy(gem_expr)), gem_expr.shape)
+        return execute_op2knl(create_op2knl(gem_expr), gem_expr.shape)
 
     """
     copy!(gemtoloopy, py"gem_to_loopy")
     copy!(executegem, py"execute_gem")
+    copy!(createop2knl, py"create_op2knl")
+    copy!(executeop2knl, py"execute_op2knl")
 
 end
 
@@ -102,7 +100,7 @@ updatechildren, updatevectorspace,
 
 togem, toloopy, execute,
 
-loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, executegem
+gem, isinst, gemtoloopy, executegem, createop2knl, executeop2knl
 
 TensorDSL
 include("TensorPrototype/Node.jl")
