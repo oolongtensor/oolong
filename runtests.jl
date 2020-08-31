@@ -189,4 +189,7 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test toloopy(A[1, y]⊗F[y']) !== nothing
         @test toloopy(componenttensor((A + Z)[1, y]⊗F[y', x], x)) !== nothing
     end
+    @testset "execute" begin
+        @test execute(B) == fill(1.2, (1, 3, 2))
+    end
 end

@@ -58,20 +58,22 @@ function __init__()
 
         # Part B: impero_c to loopy
         return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "gem_loopy", [])
-
-    def execute_gem(gem_expr):
-        knl = gem_to_loopy(gem_expr)
+    
+    def loopy_to_op2knl(knl):
         code = loopy.generate_code_v2(knl).device_code()
         code = code.replace('void gem_loopy', 'static void gem_loopy')
         print(code)
-        knl = op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
+        return op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
+
+
+    def execute_gem(gem_expr):
+        knl = loopy_to_op2knl(gem_to_loopy(gem_expr))
         zero_mat = op2.Dat(op2.Set(1) ** gem_expr.shape, np.zeros(gem_expr.shape))
         op2.par_loop(knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
         return zero_mat.data
     """
     copy!(gemtoloopy, py"gem_to_loopy")
     copy!(executegem, py"execute_gem")
-    # code = loopy.generate_code_v2(loopy_merged).device_code()
 
 end
 
