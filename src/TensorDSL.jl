@@ -11,7 +11,7 @@ const loopy = PyNULL()
 const np = PyNULL()
 const generate_loopy = PyNULL()
 const gemtoloopy = PyNULL()
-const execute = PyNULL()
+const executegem = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
@@ -35,14 +35,14 @@ function __init__()
     from loopy.codegen import generate_code_for_a_single_kernel
     from pyop2 import op2
 
-    # Copy pasted from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
+    # Copy pasted and modified from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
     def gem_to_loopy(gem_expr):
         '''Method encapsulating stage 2.
         Converts the gem expression dag into imperoc first, and then further into loopy.
         :return slate_loopy: loopy kernel for slate operations.
         '''
         # Creation of return variables for outer loopy
-        shape = gem_expr.shape if len(gem_expr.shape) != 0 else (1,)
+        shape = gem_expr.shape # if len(gem_expr.shape) != 0 else (1,)
         idx = make_indices(len(shape))
         indexed_gem_expr = gem.Indexed(gem_expr, idx)
         arg = [loopy.GlobalArg("output", shape=shape)]
@@ -59,17 +59,18 @@ function __init__()
         # Part B: impero_c to loopy
         return generate_loopy(impero_c, arg, parameters["form_compiler"]["scalar_type"], "gem_loopy", [])
 
-    def execute(gem_expr):
+    def execute_gem(gem_expr):
         knl = gem_to_loopy(gem_expr)
         code = loopy.generate_code_v2(knl).device_code()
         code = code.replace('void gem_loopy', 'static void gem_loopy')
+        print(code)
         knl = op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
         zero_mat = op2.Dat(op2.Set(1) ** gem_expr.shape, np.zeros(gem_expr.shape))
         op2.par_loop(knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
         return zero_mat.data
     """
     copy!(gemtoloopy, py"gem_to_loopy")
-    copy!(execute, py"execute")
+    copy!(executegem, py"execute_gem")
     # code = loopy.generate_code_v2(loopy_merged).device_code()
 
 end
@@ -95,9 +96,9 @@ Assignment, assign, RootNode,
 
 updatechildren, updatevectorspace,
 
-togem, toloopy,
+togem, toloopy, execute,
 
-loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, execute
+loopy, gem, tsfc, isinst, impero_utils, np, generate_loopy, gemtoloopy, executegem
 
 TensorDSL
 include("TensorPrototype/Node.jl")
