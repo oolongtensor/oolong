@@ -100,7 +100,7 @@ updatechildren, updatevectorspace,
 
 togem, toloopy, execute,
 
-gem, isinst, gemtoloopy, executegem, createop2knl, executeop2knl
+gem, isinst, gemtoloopy, executegem, createop2knl, executeop2knl, findvariables
 
 TensorDSL
 include("TensorPrototype/Node.jl")

@@ -193,4 +193,7 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test execute(B) == fill(1.2, (1, 3, 2))
         @test execute(B + 5*B) == fill(1.2 + 5*1.2, (1, 3, 2))
     end
+    @testset "find variables" begin
+        @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])
+    end
 end
