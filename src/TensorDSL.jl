@@ -65,12 +65,14 @@ function __init__()
         print(code)
         return op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
 
+    def execute_op2knl(op2knl, shape):
+        zero_mat = op2.Dat(op2.Set(1) ** shape, np.zeros(shape))
+        op2.par_loop(op2knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
+        return zero_mat.data
 
     def execute_gem(gem_expr):
-        knl = loopy_to_op2knl(gem_to_loopy(gem_expr))
-        zero_mat = op2.Dat(op2.Set(1) ** gem_expr.shape, np.zeros(gem_expr.shape))
-        op2.par_loop(knl, zero_mat.dataset.set, zero_mat(op2.WRITE))
-        return zero_mat.data
+        return execute_op2knl(loopy_to_op2knl(gem_to_loopy(gem_expr)), gem_expr.shape)
+
     """
     copy!(gemtoloopy, py"gem_to_loopy")
     copy!(executegem, py"execute_gem")
