@@ -1,6 +1,6 @@
-function toloopy(node::Node)
+function createop2knl(node::Node)
     gem_expr = togem(node)
-    return gemtoloopy(gem_expr)
+    return gemtoop2knl(gem_expr, [togem(var) for var in findvariables(node)])
 end
 
 function execute(node::Node)

@@ -181,13 +181,13 @@ H = VariableTensor("H", V2', RnSpace(5))
         end
     end
     # These tests only check that no errors are occurring, they do not check correctness.
-    @testset "toloopy" begin
-        @test toloopy(A + B) !== nothing
+    @testset "Create kernel" begin
+        @test createop2knl(A + B) !== nothing
         # This does not pass, but maybe it shouldn't?
-        # @test toloopy(A[x, y]⊗F[y']) !== nothing
-        @test toloopy((B + A + A)[1]) !== nothing
-        @test toloopy(A[1, y]⊗F[y']) !== nothing
-        @test toloopy(componenttensor((A + Z)[1, y]⊗F[y', x], x)) !== nothing
+        # @test createop2knl(A[x, y]⊗F[y']) !== nothing
+        @test createop2knl((B + A + A)[1]) !== nothing
+        @test createop2knl(A[1, y]⊗F[y']) !== nothing
+        @test createop2knl(componenttensor((A + Z)[1, y]⊗F[y', x], x)) !== nothing
     end    
     @testset "execute" begin
         @test execute(B) == fill(1.2, (1, 3, 2))
