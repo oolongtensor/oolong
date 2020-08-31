@@ -188,8 +188,9 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test toloopy((B + A + A)[1]) !== nothing
         @test toloopy(A[1, y]⊗F[y']) !== nothing
         @test toloopy(componenttensor((A + Z)[1, y]⊗F[y', x], x)) !== nothing
-    end
+    end    
     @testset "execute" begin
         @test execute(B) == fill(1.2, (1, 3, 2))
+        @test execute(B + 5*B) == fill(1.2 + 5*1.2, (1, 3, 2))
     end
 end
