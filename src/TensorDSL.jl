@@ -37,7 +37,7 @@ function __init__()
         if gem_variables is None:
             gem_variables = []
         # Creation of return variables for outer loopy
-        shape = gem_expr.shape # if len(gem_expr.shape) != 0 else (1,)
+        shape = gem_expr.shape
         idx = make_indices(len(shape))
         indexed_gem_expr = gem.Indexed(gem_expr, idx)
         args = [loopy.GlobalArg("output", shape=shape)] + [
@@ -50,7 +50,7 @@ function __init__()
         impero_c = impero_utils.compile_gem(assignments, (), remove_zeros=False)
         # Part B: impero_c to loopy
         return generate_loopy(impero_c, args, parameters["form_compiler"]["scalar_type"], "gem_loopy", [])
-    
+
     def loopy_to_op2knl(knl):
         code = loopy.generate_code_v2(knl).device_code()
         code = code.replace('void gem_loopy', 'static void gem_loopy')
@@ -100,7 +100,7 @@ Assignment, assign, RootNode,
 
 updatechildren, updatevectorspace,
 
-togem, createop2knl, execute,
+togem, execute, Kernel,
 
 gem, isinst, gemtoloopy, executegem, gemtoop2knl, executeop2knl, findvariables
 

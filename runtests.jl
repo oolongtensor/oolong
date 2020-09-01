@@ -182,17 +182,17 @@ H = VariableTensor("H", V2', RnSpace(5))
     end
     # These tests only check that no errors are occurring, they do not check correctness.
     @testset "Create kernel" begin
-        @test createop2knl(A + B)[1] !== nothing
+        @test Kernel(A + B).knl !== nothing
         # This does not pass, but maybe it shouldn't?
-        # @test createop2knl(A[x, y]⊗F[y']) !== nothing
-        @test createop2knl((B + A + A)[1])[1] !== nothing
-        @test createop2knl(A[1, y]⊗F[y'])[1] !== nothing
-        @test createop2knl(componenttensor((A + Z)[1, y]⊗F[y', x], x))[1] !== nothing
+        # @test Kernel(A[x, y]⊗F[y']) !== nothing
+        @test Kernel((B + A + A)[1]).knl !== nothing
+        @test Kernel(A[1, y]⊗F[y']).knl !== nothing
+        @test Kernel(componenttensor((A + Z)[1, y]⊗F[y', x], x)).knl !== nothing
     end    
     @testset "execute" begin
         @test execute(B) == fill(1.2, (1, 3, 2))
         @test execute(B + 5*B) == fill(1.2 + 5*1.2, (1, 3, 2))
-        @test executeop2knl(createop2knl(A)..., [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
+        @test execute(Kernel(A), Dict("A"=>fill(5.4, (3, 2)))) == fill(5.4, (1, 3, 2))
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])

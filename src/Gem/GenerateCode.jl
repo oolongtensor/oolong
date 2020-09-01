@@ -1,10 +1,22 @@
-function createop2knl(node::Node)
-    gem_expr = togem(node)
-    return gemtoop2knl(gem_expr, [togem(var) for var in findvariables(node)]), gem_expr.shape
-end
-
 function execute(node::Node)
     return executegem(togem(node))
+end
+
+struct Kernel
+    knl::PyObject
+    shape::Tuple{Vararg{Int}}
+    variables::Array{PyObject}
+    function Kernel(node::Node)
+        variables = [togem(var) for var in findvariables(node)]
+        gemexpr = togem(node)
+        shape = gemexpr.shape
+        knl = gemtoop2knl(gemexpr, variables)
+        new(knl, shape, variables)
+    end
+end
+
+function execute(knl::Kernel, variables::Dict)
+    return executeop2knl(knl.knl, knl.shape, [variables[var.name] for var in knl.variables])
 end
 
 function _findvariables(tensor::VariableTensor)
