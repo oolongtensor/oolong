@@ -1,5 +1,9 @@
+function execute(node::Node, variables)
+    return executegem(togem(node), findgemvariables(node), variables)
+end
+
 function execute(node::Node)
-    return executegem(togem(node))
+    return execute(node, [])
 end
 
 struct Kernel
@@ -7,7 +11,7 @@ struct Kernel
     shape::Tuple{Vararg{Int}}
     variables::Array{PyObject}
     function Kernel(node::Node)
-        variables = [togem(var) for var in findvariables(node)]
+        variables = findgemvariables(node)
         gemexpr = togem(node)
         shape = gemexpr.shape
         knl = gemtoop2knl(gemexpr, variables)
@@ -37,4 +41,8 @@ end
 
 function findvariables(node::Node)
     return traversal(node, x->x, _findvariables, nothing, nothing)
+end
+
+function findgemvariables(node::Node)
+    return [togem(var) for var in findvariables(node)]
 end

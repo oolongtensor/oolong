@@ -68,8 +68,8 @@ function __init__()
     def gem_to_op2knl(gem_expr, gem_variables=None):
         return loopy_to_op2knl(gem_to_loopy(gem_expr, gem_variables))
 
-    def execute_gem(gem_expr, variables=None):
-        return execute_op2knl(gem_to_op2knl(gem_expr), gem_expr.shape, variables)
+    def execute_gem(gem_expr, gem_variables=None, variables=None):
+        return execute_op2knl(gem_to_op2knl(gem_expr, gem_variables), gem_expr.shape, variables)
 
     """
     copy!(gemtoloopy, py"gem_to_loopy")

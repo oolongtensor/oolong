@@ -193,6 +193,8 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test execute(B) == fill(1.2, (1, 3, 2))
         @test execute(B + 5*B) == fill(1.2 + 5*1.2, (1, 3, 2))
         @test execute(Kernel(A), Dict("A"=>fill(5.4, (3, 2)))) == fill(5.4, (1, 3, 2))
+        @test execute(A, [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
+        @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])
