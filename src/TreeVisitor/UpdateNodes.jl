@@ -2,7 +2,7 @@ function updatechildren(node::Node)
     return node
 end
 
-updatechildren(root::RootNode, node::Node) = RootNode((node,))
+updatechildren(root::RootNode, node::Node) = RootNode(node)
 
 ### Operations ###
 

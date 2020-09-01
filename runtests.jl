@@ -23,6 +23,7 @@ a = ScalarVariable("a")
 aTensor = Tensor(a)
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
+H = VariableTensor("H", V2', RnSpace(5))
 
 @testset "TensorDSL.jl" begin
     @testset "Operations" begin
@@ -134,5 +135,68 @@ G = Tensor(arrayG, RnSpace(4))
             @test string(assign(A[x], x=>1)) == string(A[1])
             @test string(assign(A[x, y], x=>1)) == string(A[1, y])
         end
+    end
+    @testset "Gem" begin
+        @testset "Tensors" begin
+            @test togem(B) == gem.Literal(fill(1.2, (3, 2)))
+            @test togem(ConstantTensor(1, V3, V2)) == gem.Literal(fill(1, (3,2)))
+            @test togem(H) == gem.Variable("H", (2, 5))
+            @test togem(Z) == gem.Zero((3, 2))
+        end
+        @testset "Indices" begin
+            @test togem(Indices(y, z, FixedIndex(V2, 2))) == togem(Indices(y, z, FixedIndex(V2, 2)))
+            @test togem(H[y', 1]).free_indices == togem(Indices(y'))
+            @test togem(H[y', 1]).children == (togem(H),)
+            @test togem(H[y', 1]).multiindex == togem(Indices(y', FixedIndex(RnSpace(5), 1)))
+            @test togem(Tensor(collect(1:5), RnSpace(5))[2]) == gem.Literal(2)
+        end
+        @testset "componenttensor" begin
+            @test togem(A[x]).shape == (2,)
+            @test togem(A[x]).free_indices == togem(Indices(x))
+            @test togem(componenttensor(A[x],x)).shape == (2,3)
+            @test togem(componenttensor(A[x],x)).free_indices == ()
+        end
+        @testset "Addition" begin
+            @test togem(A + B).shape == (3, 2)
+            @test isinst(togem(A + B), gem.ComponentTensor)
+            @test isinst(togem(A + B).children[1], gem.Sum)
+            @test togem(A + B + A).shape == (3, 2)
+            @test togem(A + B).children[1].children[1].children[1] == togem(A)
+            @test togem(A + B).children[1].children[2].children[1] == togem(B)
+            @test togem(B + A + A).children[1].children[1].children[1].children[1] == togem(B)
+            @test Set(togem(A[x, y] + B[1,2]).free_indices) == Set(togem(Indices(x, y)))
+        end
+        @testset "Product" begin
+            @test togem(A⊗B).shape == (3, 2, 3, 2)
+            @test togem(A⊗B).children[1].children[2].children[1] == togem(B)
+            @test isinst(togem(A⊗B), gem.ComponentTensor)
+            @test isinst(togem(A⊗B).children[1], gem.Product)
+        end
+        @testset "Index sum" begin
+            @test togem(A[x, y]⊗F[y', 1]).free_indices == togem(Indices(x))
+            @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
+            @test isinst(togem(A[x, y]⊗F[y']), gem.ComponentTensor)
+            @test isinst(togem(A[x, y]⊗F[y']).children[1], gem.IndexSum)
+            @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
+        end
+    end
+    # These tests only check that no errors are occurring, they do not check correctness.
+    @testset "Create kernel" begin
+        @test Kernel(A + B).knl !== nothing
+        # This does not pass, but maybe it shouldn't?
+        # @test Kernel(A[x, y]⊗F[y']) !== nothing
+        @test Kernel((B + A + A)[1]).knl !== nothing
+        @test Kernel(A[1, y]⊗F[y']).knl !== nothing
+        @test Kernel(componenttensor((A + Z)[1, y]⊗F[y', x], x)).knl !== nothing
+    end    
+    @testset "execute" begin
+        @test execute(B) == fill(1.2, (1, 3, 2))
+        @test execute(B + 5*B) == fill(1.2 + 5*1.2, (1, 3, 2))
+        @test execute(Kernel(A), Dict("A"=>fill(5.4, (3, 2)))) == fill(5.4, (1, 3, 2))
+        @test execute(A, [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
+        @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
+    end
+    @testset "find variables" begin
+        @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])
     end
 end

@@ -3,7 +3,7 @@ abstract type Operation{rank} <: AbstractTensor{rank} end
 
 """Symbolises summing over given indices."""
 struct IndexSumOperation{rank} <: Operation{rank}
-    shape::Tuple{Vararg{VectorSpace}}
+    shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
 end
