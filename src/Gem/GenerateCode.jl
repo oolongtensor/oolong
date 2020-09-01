@@ -1,6 +1,6 @@
 function createop2knl(node::Node)
     gem_expr = togem(node)
-    return gemtoop2knl(gem_expr, [togem(var) for var in findvariables(node)])
+    return gemtoop2knl(gem_expr, [togem(var) for var in findvariables(node)]), gem_expr.shape
 end
 
 function execute(node::Node)
