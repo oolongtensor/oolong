@@ -10,12 +10,8 @@ operations.
 """
 abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 
-struct ScalarVariable
-    name::String
-end
-
 """A union type for everything that can be treated as a scalar."""
-Scalar = Union{ScalarVariable, Base.Complex, Base.Real, AbstractTensor{0}}
+Scalar = Union{Base.Complex, Base.Real, AbstractTensor{0}}
 
 """Tensors of which we only know in which vector spaces their indices are."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
@@ -87,13 +83,14 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar)
         if value == 0
             return ZeroTensor(As...)
-        end 
+        end
         new{T, length(As)}(As, (), (), value)
     end
 end
 
 """A convenience function. Allows calling Tensor on any scalar."""
 Tensor(x::AbstractTensor{0}) = x
+ConstantTensor(x::AbstractTensor{0}) = x
 """Turns non-tensor scalar into a tensor."""
 Tensor(x::T) where (T <: Scalar) = ConstantTensor(x)
 

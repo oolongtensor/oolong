@@ -1,34 +1,34 @@
 """Differentiates A w.r.t y"""
-function Base.diff(A::Union{Tensor{T, 0}, ConstantTensor{T, 0}}, y::ScalarVariable) where T
-    if A.value == y || A.value == [y]
-        return ConstantTensor(1)
-    else
-        return ZeroTensor()
-    end
+function differentiate(A::Union{Tensor{T, 0}, ConstantTensor{T, 0}}, y::VariableTensor{0}) where T
+    return A.value == y || A.value == [y] ? ConstantTensor(1) : ZeroTensor()
+end
+
+function differentiate(A::VariableTensor{0}, y::VariableTensor{0})
+    return A == y ? ConstantTensor(1) : ZeroTensor()
 end
 
 """Differentiates A w.r.t y"""
-function Base.diff(Z::ZeroTensor{0}, y::ScalarVariable)
+function differentiate(Z::ZeroTensor{0}, y::VariableTensor{0})
     return Z
 end
 
 """Differentiates A w.r.t y"""
-function Base.diff(add::AddOperation{0}, y::ScalarVariable)
-    return +([Base.diff(child, y) for child in add.children]...)
+function differentiate(add::AddOperation{0}, y::VariableTensor{0})
+    return +([differentiate(child, y) for child in add.children]...)
 end
 
 """Differentiates A w.r.t y"""
-function Base.diff(op::OuterProductOperation{0}, y::ScalarVariable)
+function differentiate(op::OuterProductOperation{0}, y::VariableTensor{0})
     (A, B) = op.children
-    return A*Base.diff(B, y) + Base.diff(A, y)*B
+    return A*differentiate(B, y) + differentiate(A, y)*B
 end
 
 """Differentiates A w.r.t y"""
-function Base.diff(si::SineOperation{0}, y::ScalarVariable)
-    return Base.cos(si.children[1]) * Base.diff(si.children[1], y)
+function differentiate(si::SineOperation{0}, y::VariableTensor{0})
+    return Base.cos(si.children[1]) * differentiate(si.children[1], y)
 end
 
 """Differentiates A w.r.t y"""
-function Base.diff(co::CosineOperation{0}, y::ScalarVariable)
-    return - Base.sin(co.children[1]) * Base.diff(co.children[1], y)
+function differentiate(co::CosineOperation{0}, y::VariableTensor{0})
+    return - Base.sin(co.children[1]) * differentiate(co.children[1], y)
 end

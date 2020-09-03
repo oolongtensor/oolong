@@ -72,7 +72,7 @@ end
 OuterProductOperation and simplifies for multiplication by zero or one.
     
 If multiplying a number by a variable, the number must be first."""
-function Base.:*(x::Scalar, y::Union{ScalarVariable, AbstractTensor{0}})
+function Base.:*(x::Scalar, y::AbstractTensor{0})
     if x == 1 || x == ConstantTensor(1)
         return Tensor(y)
     elseif y == ConstantTensor(1)

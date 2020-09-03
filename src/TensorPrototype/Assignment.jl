@@ -5,9 +5,8 @@ function replaceshape(A::Node, pair::Pair)
 end
 
 Assignment = Union{Pair{VariableTensor{rank}, T},
-    Pair{ScalarVariable, S},
     Pair{T1,T2},
-    Pair{FreeIndex{T1}, FixedIndex{T1}}} where {rank, T<:AbstractTensor{rank}, S<:Scalar, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
+    Pair{FreeIndex{T1}, FixedIndex{T1}}} where {rank, T<:AbstractTensor{rank}, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
 function _assign(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
@@ -42,16 +41,25 @@ function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
     return A == first(pair) ? last(pair) : A
 end
 
-function _assign(A::ConstantTensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
+function _assign(A::ConstantTensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     return A.value == first(pair) ? ConstantTensor(last(pair), A.shape...) : A
 end
 
-function _assign(s::ScalarVariable, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
+function _assign(s::VariableTensor{0}, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     return s == first(pair) ? last(pair) : s
 end
 
-function _assign(A::Tensor, pair::Pair{ScalarVariable, S}) where {S<: Scalar}
-    return Tensor(assign.(A.value, pair), A.shape...)
+function _assign(A::Tensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
+    function assigninarray(x, pair)
+        if last(pair) isa ConstantTensor && x == first(pair) 
+            return last(pair).value
+        elseif last(pair) isa ZeroTensor && x == first(pair)
+            return 0
+        else
+            return assign(x, pair)
+        end
+    end  
+    return Tensor(assigninarray.(A.value, pair), A.shape...)
 end
 
 function _assign(x::Number, pair::Assignment, children::Vararg{Node})
@@ -81,6 +89,10 @@ function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, 
     return traversal(node, x-> x, _assign, nothing, pair)
 end
 
+function assign(node::Node, pair::Pair{T, N}) where {T<:AbstractTensor{0}, N<:Number}
+    return traversal(node, x-> x, _assign, nothing, first(pair)=>Tensor(last(pair)))
+end
+
 function assign(node::Node, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where {T<:AbstractVectorSpace}
     if first(pair).V != last(pair).V
         throw(Dimensionmismatch(string(first(pair).V, "!=", last(pair).V)))
@@ -94,10 +106,6 @@ end
 
 function assign(node::Node, pair::Assignment)
     return traversal(node, x-> x, _assign, nothing, pair)
-end
-
-function assign(i::ScalarVariable, pair::Assignment)
-    return _assign(i, pair)
 end
 
 function assign(i::Number, pair::Assignment)
