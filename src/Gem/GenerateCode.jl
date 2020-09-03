@@ -23,6 +23,15 @@ function execute(knl::Kernel, variables::Dict)
     return executeop2knl(knl.knl, knl.shape, [variables[var.name] for var in knl.variables])
 end
 
+function execute(node::Node, variables::Dict)
+    knl = Kernel(node)
+    return execute(knl, variables)
+end
+
+function execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
+    return execute(expr, Dict(variables))
+end
+
 function _findvariables(tensor::VariableTensor)
     return Set{VariableTensor}([tensor])
 end
