@@ -86,7 +86,7 @@ AbstractVectorSpace, VectorSpace, DualVectorSpace, RnSpace, dual, dim,
 
 Index, FreeIndex, FixedIndex, Indices, toindex,
 
-AbstractTensor, TerminalTensor, ScalarVariable, Scalar, VariableTensor,
+AbstractTensor, TerminalTensor, Scalar, VariableTensor,
 Tensor, DeltaTensor, ZeroTensor, ConstantTensor,
 
 Operation, IndexSumOperation, AddOperation, OuterProductOperation, ⊗,
@@ -94,7 +94,7 @@ IndexingOperation, ComponentTensorOperation, componenttensor,
 
 SineOperation, sin, CosineOperation, cos, TangentOperation, tan,
 
-diff,
+differentiate,
 
 Assignment, assign, RootNode,
 

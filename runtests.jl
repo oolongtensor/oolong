@@ -19,8 +19,7 @@ D = VariableTensor("D", V2', Vi)
 E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
-a = ScalarVariable("a")
-aTensor = Tensor(a)
+a = VariableTensor("a")
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
 H = VariableTensor("H", V2', RnSpace(5))
@@ -82,19 +81,19 @@ H = VariableTensor("H", V2', RnSpace(5))
     @testset "Trigonometry" begin
         @test Base.sin(Tensor(1)) isa SineOperation
         @test Base.sin(Tensor(3)).children[1] == Tensor(3)
-        @test Base.cos(ScalarVariable("x")) isa CosineOperation
+        @test Base.cos(VariableTensor("x")) isa CosineOperation
         @test Base.tan(B[1, 2]) isa TangentOperation
         @test_throws MethodError Base.sin(A)
         @test_throws MethodError Base.cos(A)
         @test_throws MethodError Base.tan(A)
     end
     @testset "Differentation" begin
-        @test Base.diff(aTensor, a) == ConstantTensor(1)
-        @test Base.diff(aTensor, ScalarVariable("z")) == ZeroTensor()
-        @test Base.diff(aTensor + ZeroTensor(), a) == ConstantTensor(1)
-        @test Base.diff(Base.sin(aTensor), a) == Base.cos(aTensor)
-        @test Base.diff(Base.cos(aTensor), a) == -Base.sin(aTensor)
-        @test Base.diff(Base.sin(a * ScalarVariable("z")), a) == Base.cos(aTensor * ScalarVariable("z")) * ScalarVariable("z")
+        @test differentiate(a, a) == ConstantTensor(1)
+        @test differentiate(a, VariableTensor("z")) == ZeroTensor()
+        @test differentiate(a + ZeroTensor(), a) == ConstantTensor(1)
+        @test differentiate(Base.sin(a), a) == Base.cos(a)
+        @test differentiate(Base.cos(a), a) == -Base.sin(a)
+        @test differentiate(Base.sin(a * VariableTensor("z")), a) == Base.cos(a * VariableTensor("z")) * VariableTensor("z")
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin
@@ -102,9 +101,9 @@ H = VariableTensor("H", V2', RnSpace(5))
             @test updatechildren(A⊗B, A, E).children == (A, E)
             @test updatechildren(A[x, 1], A, fixedindices).children == (A, fixedindices,)
             @test updatechildren(A[x, y]*D[y', z], (B[x, y]*D[y', z]).children...) == B[x, y]*D[y', z]
-            @test updatechildren(sin(ScalarVariable("z")), Tensor(2)) == sin(Tensor(2))
-            @test updatechildren(cos(ScalarVariable("z")), Tensor(2)) == cos(Tensor(2))
-            @test updatechildren(tan(ScalarVariable("z")), Tensor(2)) == tan(Tensor(2))
+            @test updatechildren(sin(VariableTensor("z")), Tensor(2)) == sin(Tensor(2))
+            @test updatechildren(cos(VariableTensor("z")), Tensor(2)) == cos(Tensor(2))
+            @test updatechildren(tan(VariableTensor("z")), Tensor(2)) == tan(Tensor(2))
         end
     end
     @testset "Assignment" begin
@@ -125,7 +124,7 @@ H = VariableTensor("H", V2', RnSpace(5))
             @test assign(A, A=>ConstantTensor(2, A.shape...)) == ConstantTensor(2, A.shape...)
         end
         @testset "Variables" begin
-            @test assign(aTensor, a=>4) == ConstantTensor(4)
+            @test assign(a, a=>4) == ConstantTensor(4)
             @test assign(Tensor([a, 6], RnSpace(2)), a=>4).value == [4, 6]
             @test assign(Tensor([cos(a), a], V2), a => 0).value == [cos(ZeroTensor()), 0]
             @test assign(G, a=>0).value == [cos(ZeroTensor()), 4*sin(ZeroTensor()), 4, 7im]

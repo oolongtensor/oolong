@@ -7,7 +7,7 @@ struct SineOperation{rank} <: Operation{rank}
     end
 end
 
-function Base.sin(s::Union{ScalarVariable, AbstractTensor{0}})
+function Base.sin(s:: AbstractTensor{0})
     return SineOperation(Tensor(s))
 end
 
@@ -20,7 +20,7 @@ struct CosineOperation{rank} <: Operation{rank}
     end
 end
 
-function Base.cos(s::Union{ScalarVariable, AbstractTensor{0}})
+function Base.cos(s::AbstractTensor{0})
     return CosineOperation(Tensor(s))
 end
 
@@ -33,6 +33,6 @@ struct TangentOperation{rank} <: Operation{rank}
     end
 end
 
-function Base.tan(s::Union{ScalarVariable, AbstractTensor{0}})
+function Base.tan(s::AbstractTensor{0})
     return TangentOperation(Tensor(s))
 end
