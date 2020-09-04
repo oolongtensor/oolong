@@ -119,8 +119,16 @@ function _togem(is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyO
     return gem.ComponentTensor(gem.IndexSum(indexed, indices), new_indices)
 end
 
-function _togem(Sine::SineOperation, expr::PyObject)
+function _togem(sin::SineOperation, expr::PyObject)
     return gem.MathFunction("sin", expr)
+end
+
+function _togem(cos::CosineOperation, expr::PyObject)
+    return gem.MathFunction("cos", expr)
+end
+
+function _togem(tan::TangentOperation, expr::PyObject)
+    return gem.MathFunction("tan", expr)
 end
 
 function _togem(root::RootNode, node)
