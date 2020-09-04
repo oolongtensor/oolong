@@ -180,6 +180,9 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test isinst(togem(A[x, y]⊗F[y']).children[1], gem.IndexSum)
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
         end
+        @testset "Trigonometry" begin
+            @test isinst(togem(sin(a)), gem.MathFunction)
+        end
     end
     # These tests only check that no errors are occurring, they do not check correctness.
     @testset "Create kernel" begin

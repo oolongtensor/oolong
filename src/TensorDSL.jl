@@ -53,7 +53,8 @@ function __init__()
 
     def loopy_to_op2knl(knl):
         code = loopy.generate_code_v2(knl).device_code()
-        code = code.replace('void gem_loopy', 'static void gem_loopy')
+        # Include-statement makes sin, cos and tan work.
+        code = "#include <math.h>\n" + code.replace('void gem_loopy', 'static void gem_loopy')
         return op2.Kernel(code, "gem_loopy", ldargs=["-llapack"])
 
     def execute_op2knl(op2knl, shape, variables=None):
