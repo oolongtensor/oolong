@@ -8,11 +8,11 @@ end
 
 function _togem(A::Tensor{T}) where T
     shape = size(A.value)
-    gems = [togem(x) for x in A.value]
-    for i in shape
-        gems = [gem.Listtensor(gems[j*(i-1):j*i]) for j in 1:(length(gems) / i)]
+    gems = permutedims(togem.(A.value))
+    for i in reverse(shape)
+        gems = [gem.ListTensor(gems[(i*(j-1)+1):i*j]) for j in 1:div(length(gems), i)]
     end
-    return gem.Listtensor(gems)
+    return gems[1]
 end
 
 function _listtensor(A::Array{T}) where T
@@ -125,4 +125,8 @@ end
 
 function togem(node::Union{Node})
     return traversal(node, x-> x, _togem, nothing, nothing)
+end
+
+function togem(i::Number)
+    return gem.Literal(i)
 end
