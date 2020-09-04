@@ -1,4 +1,4 @@
-function execute(node::Node, variables)
+function execute(node::Node, variables::Array)
     return executegem(togem(node), findgemvariables(node), variables)
 end
 
@@ -36,6 +36,14 @@ function _findvariables(tensor::VariableTensor)
     return Set{VariableTensor}([tensor])
 end
 
+function _findvariables(tensor::Tensor{T}) where T<:Union{Any, Tensor}
+    return union(findvariables.(tensor.value)...)
+end
+
+function _findvariables(tensor::ConstantTensor{T}) where T<:VariableTensor
+    return Set{VariableTensor}([tensor.value])
+end
+
 function _findvariables(node::Node)
     return Set{VariableTensor}()
 end
@@ -50,6 +58,10 @@ end
 
 function findvariables(node::Node)
     return traversal(node, x->x, _findvariables, nothing, nothing)
+end
+
+function findvariables(n::Number)
+    return Set{VariableTensor}()
 end
 
 function findgemvariables(node::Node)

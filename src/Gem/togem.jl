@@ -8,7 +8,7 @@ end
 
 function _togem(A::Tensor{T}) where T
     shape = size(A.value)
-    gems = permutedims(togem.(A.value))
+    gems = PermutedDimsArray(togem.(A.value), reverse([i for i in 1:length(shape)]))
     for i in reverse(shape)
         gems = [gem.ListTensor(gems[(i*(j-1)+1):i*j]) for j in 1:div(length(gems), i)]
     end
