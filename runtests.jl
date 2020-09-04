@@ -23,6 +23,8 @@ a = VariableTensor("a")
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
 H = VariableTensor("H", V2', RnSpace(5))
+# TODO make the addition nicer
+I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], (2,2,3)), V2, V2', V3)
 
 @testset "TensorDSL.jl" begin
     @testset "Operations" begin
@@ -178,6 +180,9 @@ H = VariableTensor("H", V2', RnSpace(5))
             @test isinst(togem(A[x, y]⊗F[y']).children[1], gem.IndexSum)
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
         end
+        @testset "Trigonometry" begin
+            @test isinst(togem(sin(a)), gem.MathFunction)
+        end
     end
     # These tests only check that no errors are occurring, they do not check correctness.
     @testset "Create kernel" begin
@@ -187,6 +192,7 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test Kernel((B + A + A)[1]).knl !== nothing
         @test Kernel(A[1, y]⊗F[y']).knl !== nothing
         @test Kernel(componenttensor((A + Z)[1, y]⊗F[y', x], x)).knl !== nothing
+        @test Kernel(Tensor([a 1 ; 2 3], RnSpace(2), RnSpace(2))).knl !== nothing
     end    
     @testset "execute" begin
         @test execute(B) == fill(1.2, (1, 3, 2))
@@ -194,6 +200,9 @@ H = VariableTensor("H", V2', RnSpace(5))
         @test execute(Kernel(A), Dict("A"=>fill(5.4, (3, 2)))) == fill(5.4, (1, 3, 2))
         @test execute(A, [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
         @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
+        # TODO make fill not needed
+        @test execute(I, "a"=>fill(1.0, ())) == reshape([0.0 + i for i in 1:12],(1,2,2,3))
+        @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>fill(1.0, ()))== reshape([sin(1), cos(1), tan(1)], (1, 3))
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])

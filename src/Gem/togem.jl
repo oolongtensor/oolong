@@ -2,6 +2,25 @@ function _togem(A::Tensor{T}) where T<:Number
     return gem.Literal(A.value)
 end
 
+function _togem(A::Tensor{T,0}) where T
+    return togem(A.value)
+end
+
+function _togem(A::Tensor{T}) where T
+    shape = size(A.value)
+    gems = PermutedDimsArray(togem.(A.value), reverse([i for i in 1:length(shape)]))
+    for i in reverse(shape)
+        gems = [gem.ListTensor(gems[(i*(j-1)+1):i*j]) for j in 1:div(length(gems), i)]
+    end
+    return gems[1]
+end
+
+function _listtensor(A::Array{T}) where T
+    step = strides(A)[end]
+    num_steps = length(A) / step
+    return _listtensor([reshape(A[(i-1)*step : i*step], size(A)[1:(end-1)]) for i in 1:num_steps])
+end
+
 function _togem(A::ConstantTensor{T}) where T<:Number
     # TODO this does not work if any vector space has unknown dimension
     return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
@@ -100,10 +119,26 @@ function _togem(is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyO
     return gem.ComponentTensor(gem.IndexSum(indexed, indices), new_indices)
 end
 
+function _togem(sin::SineOperation, expr::PyObject)
+    return gem.MathFunction("sin", expr)
+end
+
+function _togem(cos::CosineOperation, expr::PyObject)
+    return gem.MathFunction("cos", expr)
+end
+
+function _togem(tan::TangentOperation, expr::PyObject)
+    return gem.MathFunction("tan", expr)
+end
+
 function _togem(root::RootNode, node)
     return RootNode(node)
 end
 
-function togem(node::Node)
+function togem(node::Union{Node})
     return traversal(node, x-> x, _togem, nothing, nothing)
+end
+
+function togem(i::Number)
+    return gem.Literal(i)
 end
