@@ -19,17 +19,18 @@ struct Kernel
     end
 end
 
-function execute(knl::Kernel, variables::Dict)
+function execute(knl::Kernel, variables::Dict{String, T}) where T
+    _preprocessvariables(variables)
     return executeop2knl(knl.knl, knl.shape, [variables[var.name] for var in knl.variables])
 end
 
-function execute(node::Node, variables::Dict)
+function execute(node::Node, variables::Dict{String, T}) where T
     knl = Kernel(node)
     return execute(knl, variables)
 end
 
 function execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
-    return execute(expr, Dict(variables))
+    return execute(expr, Dict{String, Any}(variables))
 end
 
 function _findvariables(tensor::VariableTensor)
@@ -66,4 +67,16 @@ end
 
 function findgemvariables(node::Node)
     return [togem(var) for var in findvariables(node)]
+end
+
+function _preprocessvariables(variables::Dict{String, Any})
+    for pair in variables
+        if variables[first(pair)] isa Number
+            variables[first(pair)] = fill(last(pair), ())
+        end
+    end
+end
+
+function _preprocessvariables(variables::Dict{String, A}) where A<:Array
+    return variables
 end
