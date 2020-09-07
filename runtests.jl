@@ -214,7 +214,8 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test execute(A, [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
         @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
         @test execute(I, "a"=>1.0) == reshape([0.0 + i for i in 1:12],(1,2,2,3))
-        @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0)== reshape([sin(1), cos(1), tan(1)], (1, 3))
+        @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0) == reshape([sin(1), cos(1), tan(1)], (1, 3))
+        @test execute(A / a, "A"=>fill(3.0, (3, 2)), "a"=>1.5) == fill(2.0, (1, 3, 2))
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])
