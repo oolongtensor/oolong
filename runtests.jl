@@ -180,6 +180,12 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test isinst(togem(A⊗B), gem.ComponentTensor)
             @test isinst(togem(A⊗B).children[1], gem.Product)
         end
+        @testset "Division" begin
+            @test isinst(togem(A[1,2]/3), gem.Division)
+            @test togem(B[1,2] / 2) == gem.Literal(0.6)
+            @test isinst(togem(A / VariableTensor("h")), gem.ComponentTensor)
+            @test isinst(togem(A / VariableTensor("h")).children[1], gem.Division)
+        end
         @testset "Index sum" begin
             @test togem(A[x, y]⊗F[y', 1]).free_indices == togem(Indices(x))
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
