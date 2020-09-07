@@ -61,6 +61,26 @@ struct DeltaTensor{rank} <: TerminalTensor{rank}
     children::Tuple{}
     freeindices::Tuple{}
     function DeltaTensor(As::Vararg{AbstractVectorSpace})
+        # Check that the shape is a valid identity shape
+        # i.e every vectorspace has a corresponding dual
+        hasdual = Vector{Bool}(undef, length(As))
+        for i in 1:length(hasdual)
+            hasdual[i] = false
+        end
+        for i in 1:length(As)
+            if !hasdual[i]
+                found = false
+                for j in (i+1):length(As)
+                    if As[i] == dual(As[j])
+                        found = true
+                        hasdual[j] = true
+                    end
+                end
+                if !found
+                    throw(DomainError(string("Shape ", As, " is invalid for identity.")))
+                end
+            end
+        end
         new{length(As)}(As, (), ())
     end
 end

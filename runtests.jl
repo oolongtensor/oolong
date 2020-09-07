@@ -83,6 +83,14 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
     @testset "Tensors" begin
         @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
         @test_throws DomainError Tensor([1, 2], VectorSpace(3))
+        @testset "DeltaTensor" begin
+            @test_throws DomainError DeltaTensor(V2)
+            @test DeltaTensor(V2, V2').shape == (V2, V2')
+            @test DeltaTensor(V2, RnSpace(3), RnSpace(3), V2').shape == (V2, RnSpace(3), RnSpace(3), V2')
+            @test_throws DomainError DeltaTensor(V2, V2)
+            @test DeltaTensor(V2, V3', V2', V3).shape == (V2, V3', V2', V3)
+            @test DeltaTensor().shape == ()
+        end
     end
     @testset "Indices" begin
         @test_throws DomainError FixedIndex(VectorSpace(4), 5)
@@ -121,7 +129,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test assign(D, Vi=>RnSpace(2)) == VariableTensor("D", V2', RnSpace(2))
             @test assign(ZeroTensor(Vi'), Vi'=>RnSpace(2)) == ZeroTensor(RnSpace(2))
             @test assign(ConstantTensor(a, Vi'), Vi'=>RnSpace(2)) == ConstantTensor(a, RnSpace(2))
-            @test assign(DeltaTensor(Vi'), Vi=>V2) == DeltaTensor(V2')
+            @test assign(DeltaTensor(Vi', Vi), Vi=>V2) == DeltaTensor(V2', V2)
             @test_throws DomainError assign(D, V3=>Vi)
             @test assign(D[1, z], Vi=>RnSpace(2)).freeindices == (FreeIndex(RnSpace(2), "z"),)
             @test assign(componenttensor(D[y', z], z, y'), Vi=>RnSpace(2)).shape == (RnSpace(2), V2')
