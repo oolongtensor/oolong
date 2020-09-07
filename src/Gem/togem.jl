@@ -105,6 +105,11 @@ function _togem(ou::OuterProductOperation, A::PyObject, B::PyObject)
     return gem.ComponentTensor(gem.Product(exprA, exprB), (indicesA..., indicesB...))
 end
 
+function _togem(div::DivisionOperation, A::PyObject, B::PyObject)
+    expr, indices = _toscalar(A)
+    return gem.ComponentTensor(gem.Division(expr, B), indices)
+end
+
 function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
     if expr.shape != ()
         expr, new_indices = _toscalar(expr)

@@ -54,6 +54,14 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test (-B).shape == (V3, V2)
             @test (A - B) isa AddOperation
         end
+        @testset "Division" begin
+            @test_throws DivideError A / ZeroTensor()
+            @test_throws DivideError A / 0
+            @test_throws Exception A / A
+            @test A / 5 isa DivisionOperation
+            @test (A / 4).children == (A, ConstantTensor(4))
+            @test A / 1 == A
+        end
         @testset "Component tensor" begin
             @test componenttensor(A[x, 1], x).shape == (V3,)
             @test componenttensor(A[x, y], y).shape == (V2,)
@@ -173,6 +181,12 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test isinst(togem(A⊗B), gem.ComponentTensor)
             @test isinst(togem(A⊗B).children[1], gem.Product)
         end
+        @testset "Division" begin
+            @test isinst(togem(A[1,2]/3), gem.Division)
+            @test togem(B[1,2] / 2) == gem.Literal(0.6)
+            @test isinst(togem(A / VariableTensor("h")), gem.ComponentTensor)
+            @test isinst(togem(A / VariableTensor("h")).children[1], gem.Division)
+        end
         @testset "Index sum" begin
             @test togem(A[x, y]⊗F[y', 1]).free_indices == togem(Indices(x))
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
@@ -201,7 +215,8 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test execute(A, [fill(5.4, (3, 2))]) == fill(5.4, (1, 3, 2))
         @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
         @test execute(I, "a"=>1.0) == reshape([0.0 + i for i in 1:12],(1,2,2,3))
-        @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0)== reshape([sin(1), cos(1), tan(1)], (1, 3))
+        @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0) == reshape([sin(1), cos(1), tan(1)], (1, 3))
+        @test execute(A / a, "A"=>fill(3.0, (3, 2)), "a"=>1.5) == fill(2.0, (1, 3, 2))
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])

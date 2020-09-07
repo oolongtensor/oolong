@@ -100,6 +100,28 @@ function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
+struct DivisionOperation{rank} <: Operation{rank}
+    shape::Tuple{Vararg{AbstractVectorSpace}}
+    children::Tuple{AbstractTensor, AbstractTensor{0}}
+    freeindices::Tuple{Vararg{FreeIndex}}
+    function DivisionOperation(A::AbstractTensor, y::AbstractTensor{0})
+        if y isa ZeroTensor
+            throw(DivideError())
+        elseif y == ConstantTensor(1)
+            return A
+        end
+        return contractioncheck(new{length(A.shape)}((A.shape), (A, y), (A.freeindices..., y.freeindices...)))
+    end
+end
+
+function Base.:/(A::AbstractTensor, y::AbstractTensor{0})
+    return DivisionOperation(A, y)
+end
+
+function Base.:/(A::AbstractTensor, y::Number)
+    return DivisionOperation(A, Tensor(y))
+end
+
 """A node symbolising indexing a tensor by its every dimension."""
 struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}
