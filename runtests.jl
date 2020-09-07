@@ -141,6 +141,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test string(assign((A⊗C)[2], A=>B)) == string((B⊗C)[2])
             @test_throws DomainError assign(D, D=>B)
             @test assign(A, A=>ConstantTensor(2, A.shape...)) == ConstantTensor(2, A.shape...)
+            @test togem(DeltaTensor(V2, V2')).array == reshape([1, 0, 0, 1], (2, 2))
         end
         @testset "Variables" begin
             @test assign(a, a=>4) == ConstantTensor(4)

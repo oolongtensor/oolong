@@ -26,9 +26,11 @@ function _togem(A::ConstantTensor{T}) where T<:Number
     return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
 end
 
-#=function _togem(A::DeltaTensor)
-    return IdentityGemTensor([dim(V) for V in A.shape]...)
-end=#
+function _togem(A::DeltaTensor)
+    if length(A.shape) == 2
+        return gem.Identity(dim(A.shape[1]))
+    end
+end
 
 function _togem(A::ZeroTensor)
     return gem.Zero(tuple([dim(V) for V in A.shape]...))
