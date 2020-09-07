@@ -90,6 +90,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test_throws DomainError DeltaTensor(V2, V2)
             @test DeltaTensor(V2, V3', V2', V3).shape == (V2, V3', V2', V3)
             @test DeltaTensor().shape == ()
+            @test DeltaTensor(V2, V2', V2', V2).shape == (V2, V2', V2', V2)
         end
     end
     @testset "Indices" begin

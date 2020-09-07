@@ -74,6 +74,7 @@ struct DeltaTensor{rank} <: TerminalTensor{rank}
                     if As[i] == dual(As[j])
                         found = true
                         hasdual[j] = true
+                        break
                     end
                 end
                 if !found
