@@ -60,6 +60,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test_throws Exception A / A
             @test A / 5 isa DivisionOperation
             @test (A / 4).children == (A, ConstantTensor(4))
+            @test A / 1 == A
         end
         @testset "Component tensor" begin
             @test componenttensor(A[x, 1], x).shape == (V3,)

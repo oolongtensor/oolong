@@ -107,6 +107,8 @@ struct DivisionOperation{rank} <: Operation{rank}
     function DivisionOperation(A::AbstractTensor, y::AbstractTensor{0})
         if y isa ZeroTensor
             throw(DivideError())
+        elseif y == ConstantTensor(1)
+            return A
         end
         return contractioncheck(new{length(A.shape)}((A.shape), (A, y), (A.freeindices..., y.freeindices...)))
     end
