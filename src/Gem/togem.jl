@@ -136,6 +136,18 @@ function _togem(tan::TangentOperation, expr::PyObject)
     return gem.MathFunction("tan", expr)
 end
 
+function _togem(asin::ArcsineOperation, expr::PyObject)
+    return gem.MathFunction("asin", expr)
+end
+
+function _togem(acos::ArccosineOperation, expr::PyObject)
+    return gem.MathFunction("acos", expr)
+end
+
+function _togem(atan::ArctangentOperation, expr::PyObject)
+    return gem.MathFunction("atan", expr)
+end
+
 function _togem(root::RootNode, node)
     return RootNode(node)
 end
