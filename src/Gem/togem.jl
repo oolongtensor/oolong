@@ -152,12 +152,12 @@ function _togem(visited, root::RootNode, node)
     return RootNode(node)
 end
 
-function togem(node::Union{Node}, visited::Dict)
+function togem(node::Union{Node}, visited::Union{Dict, Nothing})
     return traversal(node, x-> x, _togem, nothing, nothing, visited)
 end
 
 function togem(node::Union{Node})
-    return traversal(node, x-> x, _togem, nothing, nothing, nothing)
+    return togem(node, nothing)
 end
 
 function togem(i::Number, visited)
