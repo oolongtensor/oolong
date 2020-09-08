@@ -122,6 +122,10 @@ function Base.:/(A::AbstractTensor, y::Number)
     return DivisionOperation(A, Tensor(y))
 end
 
+function Base.:/(y::Number, A::AbstractTensor{0})
+    return DivisionOperation(Tensor(y), A)
+end
+
 """A node symbolising indexing a tensor by its every dimension."""
 struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}

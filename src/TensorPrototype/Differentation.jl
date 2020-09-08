@@ -20,6 +20,11 @@ function _differentiate(op::OuterProductOperation{0}, y::VariableTensor{0}, diff
     return A*difffn(B) + difffn(A)*B
 end
 
+function _differentiate(div::DivisionOperation{0}, y::VariableTensor, difffn)
+    A, B = div.children
+    return (difffn(A)*B - A*difffn(B))/(B*B)
+end
+
 function _differentiate(si::SineOperation{0}, y::VariableTensor{0}, difffn)
     return Base.cos(si.children[1]) * difffn(si.children[1])
 end
