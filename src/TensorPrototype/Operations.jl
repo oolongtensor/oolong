@@ -207,6 +207,15 @@ function Base.transpose(A::AbstractTensor)
     return componenttensor(A[indices...], reverse(indices)...)
 end
 
+function trace(A::AbstractTensor{2})
+    if A.shape[1] != dual(A.shape[2])
+        throw(DomainError(A, "Cannot get a trace from a tensor whose shape is not of the form (V, V')"))
+    end
+    global counter
+    counter += 1
+    return A[FreeIndex(A.shape[1], "trace", counter), FreeIndex(A.shape[2], "trace", counter)]
+end
+
 function Base.show(io::IO, op::Operation, depth::Int)
     println(io, ["\t" for i in 1:depth]..., typeof(op))
     for child in op.children

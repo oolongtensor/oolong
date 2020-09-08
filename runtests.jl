@@ -84,6 +84,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test transpose(A) isa ComponentTensorOperation
             @test transpose(C).shape == reverse(C.shape)
         end
+        @testset "Trace" begin
+            @test trace(VariableTensor("X", V3, V3')) isa IndexSumOperation
+            @test_throws DomainError trace(VariableTensor("X", V3, V3))
+            @test_throws MethodError trace(VariableTensor("X", V3, V3, V3'))
+        end
     end
     @testset "Tensors" begin
         @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
@@ -233,6 +238,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0) == reshape([sin(1), cos(1), tan(1)], (1, 3))
         @test execute(Tensor([asin(a), acos(a), atan(a)], V3), "a"=>0.5) == reshape([asin(0.5), acos(0.5), atan(0.5)], (1, 3))
         @test execute(A / a, "A"=>fill(3.0, (3, 2)), "a"=>1.5) == fill(2.0, (1, 3, 2))
+        @test execute(trace(Tensor([1 2 ; 3 4], V2, V2'))) == [5.0]
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])

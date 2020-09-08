@@ -92,7 +92,7 @@ Tensor, DeltaTensor, ZeroTensor, ConstantTensor,
 
 Operation, IndexSumOperation, AddOperation, OuterProductOperation, ⊗,
 IndexingOperation, ComponentTensorOperation, componenttensor,
-DivisionOperation,
+DivisionOperation, trace,
 
 SineOperation, CosineOperation, TangentOperation, ArcsineOperation,
 ArccosineOperation, ArctangentOperation,
