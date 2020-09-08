@@ -58,7 +58,7 @@ function _findvariables(visited, node::Node, found::Vararg{Set{VariableTensor}})
 end
 
 function findvariables(node::Node)
-    return traversal(node, x->x, _findvariables, nothing, nothing)
+    return traversal(node, x->x, _findvariables, nothing, nothing, nothing)
 end
 
 function findvariables(n::Number)

@@ -109,7 +109,7 @@ function assign(node::Node, pair::Assignment)
 end
 
 function _callassign(node::Node, pair::Assignment)
-    return traversal(node, x-> x, _assign, nothing, pair)
+    return traversal(node, x-> x, _assign, nothing, pair, nothing)
 end
 
 function assign(i::Number, pair::Assignment)

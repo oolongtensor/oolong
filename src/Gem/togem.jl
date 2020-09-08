@@ -157,7 +157,7 @@ function togem(node::Union{Node}, visited::Dict)
 end
 
 function togem(node::Union{Node})
-    return traversal(node, x-> x, _togem, nothing, nothing)
+    return traversal(node, x-> x, _togem, nothing, nothing, nothing)
 end
 
 function togem(i::Number, visited)
