@@ -58,10 +58,14 @@ function differentiate(A::AbstractTensor{0}, x::VariableTensor{0})
     return traversal(A, x -> x, _differentiate, nothing, x, nothing, true)
 end
 
-function gradient(A::Tensor{T, 1}, vars::Vararg{VariableTensor{0}}) where T
+function differentiate(y::Number, x::VariableTensor{0})
+    return 0
+end
+
+function divergence(A::Tensor{T, 1}, vars::Vararg{VariableTensor{0}}) where T
     if dim(A.shape[1]) != length(vars)
         throw(DimensionMismatch(string(vars, " does not have enough variables to gradient ", A)))
     end
-    return +([differentiate(A.value[i], vars[i]) for i in 1:length(vars)]...)
+    return +([Tensor(differentiate(A.value[i], vars[i])) for i in 1:length(vars)]...)
 end
 

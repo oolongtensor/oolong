@@ -133,6 +133,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test differentiate(Base.acos(6*a), a) == - Tensor(6) / Base.sqrt(Tensor(1) - (6a)^2)
         @test differentiate(Base.atan(6*a), a) == 6 / (Tensor(1) + (6a)^2)
         @test gradient(Tensor([b * sin(a), a * sin(b)], V2), a, b) == b * cos(a) + a * cos(b)
+        @test gradient(Tensor([43, a * sin(b)], V2), a, b) == a * cos(b)
         @test_throws DimensionMismatch gradient(Tensor([1, 2, 3], V3), a, b)
     end
     @testset "TreeVisitor" begin
