@@ -124,6 +124,10 @@ function _togem(visited, is::IndexSumOperation, expr::PyObject, indices::Tuple{V
     return gem.ComponentTensor(gem.IndexSum(indexed, indices), new_indices)
 end
 
+function _togem(visited, po::PowerOperation, expr::PyObject, pow::PyObject)
+    return gem.Power(expr, pow)
+end
+
 function _togem(visited, sin::SineOperation, expr::PyObject)
     return gem.MathFunction("sin", expr)
 end

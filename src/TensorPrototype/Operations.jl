@@ -100,6 +100,27 @@ function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
+struct PowerOperation{rank} <: Operation{rank}
+    shape::Tuple{}
+    children::Tuple{AbstractTensor{0}, AbstractTensor{0}}
+    freeindices::Tuple{Vararg{FreeIndex}}
+    function PowerOperation(x::AbstractTensor{0}, y::AbstractTensor{0})
+        new{0}((), (x, y), (x.freeindices..., y.freeindices...))
+    end
+end
+
+function ^(x::AbstractTensor{0}, y::AbstractTensor{0})
+    return PowerOperation(x, y)
+end
+
+function ^(x::AbstractTensor{0}, y::Number)
+    return x^Tensor(y)
+end
+
+function sqrt(x::AbstractTensor{0})
+    return PowerOperation(x, Tensor(1//2))
+end
+
 struct DivisionOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor{0}}
