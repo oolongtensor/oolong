@@ -37,6 +37,18 @@ function _differentiate(ta::TangentOperation{0}, y::VariableTensor{0}, difffn)
     return difffn(ta.children[1]) / (cos(ta.children[1])^2)
 end
 
+function _differentiate(asi::ArcsineOperation{0}, y::VariableTensor{0}, difffn)
+    return difffn(asi.children[1]) / sqrt(Tensor(1) - asi.children[1]^2)
+end
+
+function _differentiate(aco::ArccosineOperation{0}, y::VariableTensor{0}, difffn)
+    return - difffn(aco.children[1]) / sqrt(Tensor(1) - aco.children[1]^2)
+end
+
+function _differentiate(ata::ArctangentOperation{0}, y::VariableTensor{0}, difffn)
+    return difffn(ata.children[1]) / (Tensor(1) + ata.children[1]^2)
+end
+
 function _differentiate(root::RootNode, y::VariableTensor{0}, diffn)
     return RootNode(diffn(root.children[1]))
 end
