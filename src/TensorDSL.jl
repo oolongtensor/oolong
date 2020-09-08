@@ -94,7 +94,8 @@ Operation, IndexSumOperation, AddOperation, OuterProductOperation, ⊗,
 IndexingOperation, ComponentTensorOperation, componenttensor,
 DivisionOperation,
 
-SineOperation, sin, CosineOperation, cos, TangentOperation, tan,
+SineOperation, CosineOperation, TangentOperation, ArcsineOperation,
+ArccosineOperation, ArctangentOperation,
 
 differentiate,
 
