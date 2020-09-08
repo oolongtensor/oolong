@@ -33,6 +33,10 @@ function _differentiate(co::CosineOperation{0}, y::VariableTensor{0}, difffn)
     return - Base.sin(co.children[1]) * difffn(co.children[1])
 end
 
+function _differentiate(ta::TangentOperation{0}, y::VariableTensor{0}, difffn)
+    return difffn(ta.children[1]) / (cos(ta.children[1])*cos(ta.children[1]))
+end
+
 function _differentiate(root::RootNode, y::VariableTensor{0}, diffn)
     return RootNode(diffn(root.children[1]))
 end
