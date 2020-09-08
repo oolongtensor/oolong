@@ -123,11 +123,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test differentiate(a + ZeroTensor(), a) == ConstantTensor(1)
         @test differentiate(a + a, a) == ConstantTensor(1) + ConstantTensor(1)
         @test differentiate(a + 3*a, a) == ConstantTensor(1) + ConstantTensor(3)
-        @test differentiate(1 / a, a) == (-1 / (a*a))
+        @test differentiate(1 / a, a) == (-1 / (a^2))
         @test differentiate(Base.sin(a), a) == Base.cos(a)
         @test differentiate(Base.cos(a), a) == -Base.sin(a)
         @test differentiate(Base.sin(a * VariableTensor("z")), a) == Base.cos(a * VariableTensor("z")) * VariableTensor("z")
-        @test differentiate(Base.tan(Base.cos(a)), a) == - Base.sin(a) / (Base.cos(Base.cos(a))*Base.cos(Base.cos(a)))
+        @test differentiate(Base.tan(Base.cos(a)), a) == - Base.sin(a) / (Base.cos(Base.cos(a))^2)
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin

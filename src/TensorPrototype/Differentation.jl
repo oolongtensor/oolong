@@ -22,7 +22,7 @@ end
 
 function _differentiate(div::DivisionOperation{0}, y::VariableTensor, difffn)
     A, B = div.children
-    return (difffn(A)*B - A*difffn(B))/(B*B)
+    return (difffn(A)*B - A*difffn(B))/(B^2)
 end
 
 function _differentiate(si::SineOperation{0}, y::VariableTensor{0}, difffn)
@@ -34,7 +34,7 @@ function _differentiate(co::CosineOperation{0}, y::VariableTensor{0}, difffn)
 end
 
 function _differentiate(ta::TangentOperation{0}, y::VariableTensor{0}, difffn)
-    return difffn(ta.children[1]) / (cos(ta.children[1])*cos(ta.children[1]))
+    return difffn(ta.children[1]) / (cos(ta.children[1])^2)
 end
 
 function _differentiate(root::RootNode, y::VariableTensor{0}, diffn)
