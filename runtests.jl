@@ -20,6 +20,7 @@ E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = VariableTensor("a")
+b = VariableTensor("b")
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
 H = VariableTensor("H", V2', RnSpace(5))
@@ -131,6 +132,8 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test differentiate(Base.asin(6*a), a) == 6 / Base.sqrt(Tensor(1) - (6a)^2)
         @test differentiate(Base.acos(6*a), a) == - Tensor(6) / Base.sqrt(Tensor(1) - (6a)^2)
         @test differentiate(Base.atan(6*a), a) == 6 / (Tensor(1) + (6a)^2)
+        @test gradient(Tensor([b * sin(a), a * sin(b)], V2), a, b) == b * cos(a) + a * cos(b)
+        @test_throws DimensionMismatch gradient(Tensor([1, 2, 3], V3), a, b)
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin
