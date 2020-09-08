@@ -1,12 +1,12 @@
-function _togem(A::Tensor{T}) where T<:Number
+function _togem(visited, A::Tensor{T}) where T<:Number
     return gem.Literal(A.value)
 end
 
-function _togem(A::Tensor{T,0}) where T
+function _togem(visited, A::Tensor{T,0}) where T
     return togem(A.value)
 end
 
-function _togem(A::Tensor{T}) where T
+function _togem(visited, A::Tensor{T}) where T
     shape = size(A.value)
     gems = PermutedDimsArray(togem.(A.value), reverse([i for i in 1:length(shape)]))
     for i in reverse(shape)
@@ -21,20 +21,20 @@ function _listtensor(A::Array{T}) where T
     return _listtensor([reshape(A[(i-1)*step : i*step], size(A)[1:(end-1)]) for i in 1:num_steps])
 end
 
-function _togem(A::ConstantTensor{T}) where T<:Number
+function _togem(visited, A::ConstantTensor{T}) where T<:Number
     # TODO this does not work if any vector space has unknown dimension
     return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
 end
 
-#=function _togem(A::DeltaTensor)
+#=function _togem(visited, A::DeltaTensor)
     return IdentityGemTensor([dim(V) for V in A.shape]...)
 end=#
 
-function _togem(A::ZeroTensor)
+function _togem(visited, A::ZeroTensor)
     return gem.Zero(tuple([dim(V) for V in A.shape]...))
 end
 
-function _togem(A::VariableTensor)
+function _togem(visited, A::VariableTensor)
     for V in A.shape
         if dim(V) === nothing
             throw(DomainError(A.shape, "The tensor must have a known shape."))
@@ -45,13 +45,13 @@ end
 
 GemIndexTypes = Union{Int, PyObject}
 
-function _togem(in::IndexingOperation, A::PyObject, indices::Tuple{Vararg{GemIndexTypes}})
+function _togem(visited, in::IndexingOperation, A::PyObject, indices::Tuple{Vararg{GemIndexTypes}})
     return gem.Indexed(A, indices)
 end
 
 freeIndices = Dict{FreeIndex, PyObject}()
 
-function _togem(i::FreeIndex)
+function _togem(visited, i::FreeIndex)
     global freeIndices
     # Gem gives indices their owns ids, and we want them to be consistent
     if haskey(freeIndices, i)
@@ -65,13 +65,13 @@ function _togem(i::FreeIndex)
     end
 end
 
-function _togem(i::FixedIndex)
+function _togem(visited, i::FixedIndex)
     # Python starts indexing from 0 and Julia from 1
     return i.value - 1
 end
 
-function _togem(indices::Indices)
-    return tuple([_togem(i) for i in indices.indices]...)
+function _togem(visited, indices::Indices)
+    return tuple([_togem(visited, i) for i in indices.indices]...)
 end
 
 ```Helper function that indexes tensors. Returns the tensors and the indices.
@@ -89,7 +89,7 @@ function _toscalar(tensor::PyObject)
     return scalars[1], indices
 end
 
-function _togem(add::AddOperation, children::Vararg{PyObject})
+function _togem(visited, add::AddOperation, children::Vararg{PyObject})
     indexed, indices = _toscalar(children)
     sum = indexed[1]
     for expr in indexed[2:end]
@@ -99,18 +99,18 @@ function _togem(add::AddOperation, children::Vararg{PyObject})
 end
 
 
-function _togem(ou::OuterProductOperation, A::PyObject, B::PyObject)
+function _togem(visited, ou::OuterProductOperation, A::PyObject, B::PyObject)
     exprA, indicesA = _toscalar(A)
     exprB, indicesB = _toscalar(B)
     return gem.ComponentTensor(gem.Product(exprA, exprB), (indicesA..., indicesB...))
 end
 
-function _togem(div::DivisionOperation, A::PyObject, B::PyObject)
+function _togem(visited, div::DivisionOperation, A::PyObject, B::PyObject)
     expr, indices = _toscalar(A)
     return gem.ComponentTensor(gem.Division(expr, B), indices)
 end
 
-function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
+function _togem(visited, comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
     if expr.shape != ()
         expr, new_indices = _toscalar(expr)
         return gem.ComponentTensor(expr, (new_indices..., indices...))
@@ -119,36 +119,36 @@ function _togem(comp::ComponentTensorOperation, expr::PyObject, indices::Tuple{V
     end
 end
 
-function _togem(is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
+function _togem(visited, is::IndexSumOperation, expr::PyObject, indices::Tuple{Vararg{PyObject}})
     indexed, new_indices = _toscalar(expr)
     return gem.ComponentTensor(gem.IndexSum(indexed, indices), new_indices)
 end
 
-function _togem(sin::SineOperation, expr::PyObject)
+function _togem(visited, sin::SineOperation, expr::PyObject)
     return gem.MathFunction("sin", expr)
 end
 
-function _togem(cos::CosineOperation, expr::PyObject)
+function _togem(visited, cos::CosineOperation, expr::PyObject)
     return gem.MathFunction("cos", expr)
 end
 
-function _togem(tan::TangentOperation, expr::PyObject)
+function _togem(visited, tan::TangentOperation, expr::PyObject)
     return gem.MathFunction("tan", expr)
 end
 
-function _togem(asin::ArcsineOperation, expr::PyObject)
+function _togem(visited, asin::ArcsineOperation, expr::PyObject)
     return gem.MathFunction("asin", expr)
 end
 
-function _togem(acos::ArccosineOperation, expr::PyObject)
+function _togem(visited, acos::ArccosineOperation, expr::PyObject)
     return gem.MathFunction("acos", expr)
 end
 
-function _togem(atan::ArctangentOperation, expr::PyObject)
+function _togem(visited, atan::ArctangentOperation, expr::PyObject)
     return gem.MathFunction("atan", expr)
 end
 
-function _togem(root::RootNode, node)
+function _togem(visited, root::RootNode, node)
     return RootNode(node)
 end
 

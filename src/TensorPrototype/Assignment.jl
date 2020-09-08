@@ -8,48 +8,48 @@ Assignment = Union{Pair{VariableTensor{rank}, T},
     Pair{T1,T2},
     Pair{FreeIndex{T1}, FixedIndex{T1}}} where {rank, T<:AbstractTensor{rank}, T1 <: AbstractVectorSpace, T2 <: AbstractVectorSpace}
 
-function _assign(A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, A::Tensor{T, rank}, pair::Pair{T1, T2}) where {T, rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Tensor(A.value, replaceshape(A, pair)...)
 end
 
-function _assign(A::ConstantTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, A::ConstantTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return ConstantTensor(A.value, replaceshape(A, pair)...)
 end
 
-function _assign(A::ZeroTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, A::ZeroTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return ZeroTensor(replaceshape(A, pair)...)
 end
 
-function _assign(A::DeltaTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, A::DeltaTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return DeltaTensor(replaceshape(A, pair)...)
 end
 
-function _assign(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return VariableTensor(A.name, replaceshape(A, pair)...)
 end
 
-function _assign(indices::Indices, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function _assign(visited, indices::Indices, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     return Indices([i.V == first(pair) ? updatevectorspace(i, last(pair)) : i for i in indices.indices]...)
 end
 
-function _assign(indices::Indices, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where {T<:AbstractVectorSpace}
+function _assign(visited, indices::Indices, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where {T<:AbstractVectorSpace}
     return Indices([i == first(pair) ? last(pair) : i for i in indices.indices]...)
 end
 
-function _assign(A::VariableTensor, pair::Pair{VariableTensor{rank},
+function _assign(visited, A::VariableTensor, pair::Pair{VariableTensor{rank},
         T}) where {rank, T<:AbstractTensor{rank}}
     return A == first(pair) ? last(pair) : A
 end
 
-function _assign(A::ConstantTensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
+function _assign(visited, A::ConstantTensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     return A.value == first(pair) ? ConstantTensor(last(pair), A.shape...) : A
 end
 
-function _assign(s::VariableTensor{0}, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
+function _assign(visited, s::VariableTensor{0}, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     return s == first(pair) ? last(pair) : s
 end
 
-function _assign(A::Tensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
+function _assign(visited, A::Tensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     function assigninarray(x, pair)
         if last(pair) isa ConstantTensor && x == first(pair) 
             return last(pair).value
@@ -62,11 +62,11 @@ function _assign(A::Tensor, pair::Pair{VariableTensor{0}, S}) where {S<: Scalar}
     return Tensor(assigninarray.(A.value, pair), A.shape...)
 end
 
-function _assign(x::Number, pair::Assignment, children::Vararg{Node})
+function _assign(visited, x::Number, pair::Assignment, children::Vararg{Node})
     return x
 end
 
-function _assign(x::Node, pair::Assignment, children::Vararg{Node})
+function _assign(visited, x::Node, pair::Assignment, children::Vararg{Node})
     return updatechildren(x, children...)
 end
 

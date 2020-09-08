@@ -11,17 +11,25 @@ function _traversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing}, v
     else
         new_children = [_traversal(child, visitfn, visitfnargs, visited) for child in node.children]
         result = visitfnargs !== nothing ?
-            visitfn(node, visitfnargs, new_children...) : visitfn(node, new_children...)
+            visitfn(visited, node, visitfnargs, new_children...) :
+                visitfn(visited, node, new_children...)
         visited[node] = result
         return result
     end
 end
 
 function traversal(node, pretraversalfn::Function, visitfn::Function,
-        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
+        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing},
+        visited)
     root = RootNode(node)
     root = pretraversalfnargs !== nothing ? pretraversalfn(root, pretraversalfnargs...) : pretraversalfn(root)
-    visited = Dict{Any, Any}()
     root = _traversal(root, visitfn, visitfnargs, visited)
     return root.children[1]
+end
+
+function traversal(node, pretraversalfn::Function, visitfn::Function,
+        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing})
+    visited = Dict{Any, Any}()
+    return traversal(node, pretraversalfn, visitfn, pretraversalfnargs,
+        visitfnargs, visited)
 end
