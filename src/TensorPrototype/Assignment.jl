@@ -78,7 +78,7 @@ function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<
             throw(DomainError((A.shape[i], B.shape[i]), string("Invalid reshaping of ", A.shape, " to ", B.shape)))
         end
     end
-    return traversal(node, x-> x, _assign, nothing, pair)
+    return _callassign(node, pair)
 end
 
 function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
@@ -86,25 +86,29 @@ function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, 
     if dim(first(pair)) != dim(last(pair)) && dim(first(pair)) !== nothing
         throw(DomainError((T1,T2), "Cannot assign different dimension vector spaces"))
     end
-    return traversal(node, x-> x, _assign, nothing, pair)
+    return _callassign(node, pair)
 end
 
 function assign(node::Node, pair::Pair{T, N}) where {T<:AbstractTensor{0}, N<:Number}
-    return traversal(node, x-> x, _assign, nothing, first(pair)=>Tensor(last(pair)))
+    return _callassign(node, first(pair)=>Tensor(last(pair)))
 end
 
 function assign(node::Node, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where {T<:AbstractVectorSpace}
     if first(pair).V != last(pair).V
         throw(Dimensionmismatch(string(first(pair).V, "!=", last(pair).V)))
     end
-    return traversal(node, x-> x, _assign, nothing, pair)
+    return _callassign(node, pair)
 end
 
 function assign(node::Node, pair::Pair{FreeIndex{T}, Int}) where {T<:AbstractVectorSpace}
-    return assign(node, first(pair)=>FixedIndex(first(pair).V, last(pair)))
+    return _callassign(node, first(pair)=>FixedIndex(first(pair).V, last(pair)))
 end
 
 function assign(node::Node, pair::Assignment)
+    return _callassign(node, pair)
+end
+
+function _callassign(node::Node, pair::Assignment)
     return traversal(node, x-> x, _assign, nothing, pair)
 end
 
