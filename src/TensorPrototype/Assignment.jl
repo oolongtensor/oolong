@@ -81,16 +81,24 @@ function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<
     return _callassign(node, pair)
 end
 
-function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+function assign(node::Node, pair::Pair{T1, T2}, visited) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
     # Check that vector spaces match
     if dim(first(pair)) != dim(last(pair)) && dim(first(pair)) !== nothing
         throw(DomainError((T1,T2), "Cannot assign different dimension vector spaces"))
     end
-    return _callassign(node, pair)
+    return _callassign(node, pair, visited)
+end
+
+function assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    return assign(node, pair, nothing)
+end
+
+function assign(node::Node, pair::Pair{T, N}, visited) where {T<:AbstractTensor{0}, N<:Number}
+    return _callassign(node, first(pair)=>Tensor(last(pair)), visited)
 end
 
 function assign(node::Node, pair::Pair{T, N}) where {T<:AbstractTensor{0}, N<:Number}
-    return _callassign(node, first(pair)=>Tensor(last(pair)))
+    return assign(node, pair, nothing)
 end
 
 function assign(node::Node, pair::Pair{FreeIndex{T}, FixedIndex{T}}) where {T<:AbstractVectorSpace}
@@ -108,8 +116,12 @@ function assign(node::Node, pair::Assignment)
     return _callassign(node, pair)
 end
 
-function _callassign(node::Node, pair::Assignment)
-    return traversal(node, x-> x, _assign, nothing, pair, nothing)
+function _callassign(node::Node, pair::Assignment, visited)
+    return traversal(node, x-> x, _assign, nothing, pair, visited)
+end
+
+function _callassign(node::Node, pair::Pair)
+    return _callassign(node, pair, nothing)
 end
 
 function assign(i::Number, pair::Assignment)
