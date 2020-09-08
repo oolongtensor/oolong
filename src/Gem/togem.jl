@@ -3,12 +3,12 @@ function _togem(visited, A::Tensor{T}) where T<:Number
 end
 
 function _togem(visited, A::Tensor{T,0}) where T
-    return togem(A.value)
+    return togem(A.value, visited)
 end
 
 function _togem(visited, A::Tensor{T}) where T
     shape = size(A.value)
-    gems = PermutedDimsArray(togem.(A.value), reverse([i for i in 1:length(shape)]))
+    gems = PermutedDimsArray((x -> togem(x, visited)).(A.value), reverse([i for i in 1:length(shape)]))
     for i in reverse(shape)
         gems = [gem.ListTensor(gems[(i*(j-1)+1):i*j]) for j in 1:div(length(gems), i)]
     end
@@ -152,10 +152,14 @@ function _togem(visited, root::RootNode, node)
     return RootNode(node)
 end
 
+function togem(node::Union{Node}, visited::Dict)
+    return traversal(node, x-> x, _togem, nothing, nothing, visited)
+end
+
 function togem(node::Union{Node})
     return traversal(node, x-> x, _togem, nothing, nothing)
 end
 
-function togem(i::Number)
+function togem(i::Number, visited)
     return gem.Literal(i)
 end
