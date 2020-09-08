@@ -20,7 +20,7 @@ struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
     value::Int
     function FixedIndex(V::T, value::Int) where {T<:AbstractVectorSpace}
-        if dim(V) == nothing || value < 1 || value > dim(V)
+        if dim(V) === nothing || value < 1 || value > dim(V)
             throw(DomainError(value, string("Value not in range for the vectorspace ", V)))
         end
         new{T}(V, value)

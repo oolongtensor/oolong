@@ -79,6 +79,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test C[w, z, z'].freeindices == (w,)
             @test C[w, z, z'].children[2] == Indices(z)
         end
+        @testset "Transpose" begin
+            @test transpose(A).shape == reverse(A.shape)
+            @test transpose(A) isa ComponentTensorOperation
+            @test transpose(C).shape == reverse(C.shape)
+        end
     end
     @testset "Tensors" begin
         @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))

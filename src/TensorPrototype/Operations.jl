@@ -197,6 +197,16 @@ function Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     return Base.getindex(A, indexarray...)
 end
 
+function Base.transpose(A::AbstractTensor)
+    indices = []
+    for V in A.shape
+        global idcounter
+        push!(indices, FreeIndex(V, "tranpose", idcounter))
+        idcounter += 1
+    end
+    return componenttensor(A[indices...], reverse(indices)...)
+end
+
 function Base.show(io::IO, op::Operation, depth::Int)
     println(io, ["\t" for i in 1:depth]..., typeof(op))
     for child in op.children
