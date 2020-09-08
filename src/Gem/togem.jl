@@ -29,6 +29,8 @@ end
 function _togem(A::DeltaTensor)
     if length(A.shape) == 2
         return gem.Identity(dim(A.shape[1]))
+    else
+        throw(DomainError("Cannot convert generalised deltas to Gem yet."))
     end
 end
 

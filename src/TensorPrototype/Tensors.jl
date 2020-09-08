@@ -55,34 +55,16 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
-"""The general identity tensor."""
+"""The general identity tensor.
+
+Given a vector spaces Vq, ..., Vs creates an identity tensor of the shape
+Vq, Vq', ... Vs, Vs'."""
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
     function DeltaTensor(As::Vararg{AbstractVectorSpace})
-        # Check that the shape is a valid identity shape
-        # i.e every vectorspace has a corresponding dual
-        hasdual = Vector{Bool}(undef, length(As))
-        for i in 1:length(hasdual)
-            hasdual[i] = false
-        end
-        for i in 1:length(As)
-            if !hasdual[i]
-                found = false
-                for j in (i+1):length(As)
-                    if As[i] == dual(As[j])
-                        found = true
-                        hasdual[j] = true
-                        break
-                    end
-                end
-                if !found
-                    throw(DomainError(string("Shape ", As, " is invalid for identity.")))
-                end
-            end
-        end
-        new{length(As)}(As, (), ())
+        new{length(As)}(tuple([isodd(i) ? As[div(i, 2) + 1] : As[div(i, 2)]' for i in 1:(2*length(As))]...), (), ())
     end
 end
 
