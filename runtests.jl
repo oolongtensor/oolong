@@ -96,6 +96,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test_throws MethodError Base.sin(A)
         @test_throws MethodError Base.cos(A)
         @test_throws MethodError Base.tan(A)
+        @test Base.asin(Tensor(.4)) isa ArcsineOperation
+        @test_throws DomainError Base.asin(Tensor(4))
+        @test Base.acos(Tensor(.4)) isa ArccosineOperation
+        @test_throws DomainError Base.acos(Tensor(4))
+        @test Base.atan(Tensor(40)) isa ArctangentOperation
     end
     @testset "Differentation" begin
         @test differentiate(a, a) == ConstantTensor(1)
