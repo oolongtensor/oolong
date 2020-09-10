@@ -97,7 +97,7 @@ DivisionOperation, trace, PowerOperation,
 SineOperation, CosineOperation, TangentOperation, ArcsineOperation,
 ArccosineOperation, ArctangentOperation,
 
-differentiate, gradient,
+differentiate, divergence,
 
 Assignment, assign, RootNode,
 

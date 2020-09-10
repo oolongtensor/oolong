@@ -62,10 +62,21 @@ function differentiate(y::Number, x::VariableTensor{0})
     return 0
 end
 
-function divergence(A::Tensor{T, 1}, vars::Vararg{VariableTensor{0}}) where T
-    if dim(A.shape[1]) != length(vars)
-        throw(DimensionMismatch(string(vars, " does not have enough variables to gradient ", A)))
-    end
+function _divergence(A::Tensor{T, 1}, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn) where T
     return +([Tensor(differentiate(A.value[i], vars[i])) for i in 1:length(vars)]...)
 end
 
+function _divergence(A::AddOperation{1}, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn)
+    return +([divergencefn(child) for child in A.children]...)
+end
+
+function _divergence(A::RootNode, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn)
+    return RootNode(divergencefn(A.children[1]))
+end
+
+function divergence(A::AbstractTensor{1}, vars::Vararg{VariableTensor{0}})
+    if dim(A.shape[1]) != length(vars)
+        throw(DimensionMismatch(string(vars, " does not have enough variables to gradient ", A)))
+    end
+    return traversal(A, x -> x, _divergence, nothing, vars, nothing, true)
+end
