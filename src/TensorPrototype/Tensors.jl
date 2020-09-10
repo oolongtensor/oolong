@@ -24,11 +24,6 @@ struct VariableTensor{rank} <: TerminalTensor{rank}
     end
 end
 
-function getVariableTensor(name::String)
-    global _tensorvariables
-    return _tensorvariables[name]
-end
-
 function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace})
     if size(x) == (1,) && length(Vs) == 0
     elseif ndims(x) != length(Vs)
