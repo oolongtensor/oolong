@@ -109,15 +109,15 @@ struct PowerOperation{rank} <: Operation{rank}
     end
 end
 
-function ^(x::AbstractTensor{0}, y::AbstractTensor{0})
+function Base.:^(x::AbstractTensor{0}, y::AbstractTensor{0})
     return PowerOperation(x, y)
 end
 
-function ^(x::AbstractTensor{0}, y::Number)
+function Base.:^(x::AbstractTensor{0}, y::Number)
     return x^Tensor(y)
 end
 
-function sqrt(x::AbstractTensor{0})
+function Base.sqrt(x::AbstractTensor{0})
     return PowerOperation(x, Tensor(1//2))
 end
 
@@ -141,6 +141,10 @@ end
 
 function Base.:/(A::AbstractTensor, y::Number)
     return DivisionOperation(A, Tensor(y))
+end
+
+function Base.:/(y::Number, A::AbstractTensor{0})
+    return DivisionOperation(Tensor(y), A)
 end
 
 """A node symbolising indexing a tensor by its every dimension."""

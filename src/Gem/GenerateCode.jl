@@ -33,32 +33,32 @@ function execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
     return execute(expr, Dict{String, Any}(variables))
 end
 
-function _findvariables(tensor::VariableTensor)
+function _findvariables(visited, tensor::VariableTensor)
     return Set{VariableTensor}([tensor])
 end
 
-function _findvariables(tensor::Tensor{T}) where T<:Union{Any, Tensor}
+function _findvariables(visited, tensor::Tensor{T}) where T<:Union{Any, Tensor}
     return union(findvariables.(tensor.value)...)
 end
 
-function _findvariables(tensor::ConstantTensor{T}) where T<:VariableTensor
+function _findvariables(visited, tensor::ConstantTensor{T}) where T<:VariableTensor
     return Set{VariableTensor}([tensor.value])
 end
 
-function _findvariables(node::Node)
+function _findvariables(visited, node::Node)
     return Set{VariableTensor}()
 end
 
-function _findvariables(root::RootNode, found::Vararg{Set{VariableTensor}})
+function _findvariables(visited, root::RootNode, found::Vararg{Set{VariableTensor}})
     return RootNode(union(found...))
 end
 
-function _findvariables(node::Node, found::Vararg{Set{VariableTensor}})
+function _findvariables(visited, node::Node, found::Vararg{Set{VariableTensor}})
     return union(found...)
 end
 
 function findvariables(node::Node)
-    return traversal(node, x->x, _findvariables, nothing, nothing)
+    return traversal(node, x->x, _findvariables, nothing, nothing, nothing)
 end
 
 function findvariables(n::Number)

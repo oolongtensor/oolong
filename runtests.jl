@@ -20,6 +20,7 @@ E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = VariableTensor("a")
+b = VariableTensor("b")
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
 H = VariableTensor("H", V2', RnSpace(5))
@@ -121,9 +122,22 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test differentiate(a, a) == ConstantTensor(1)
         @test differentiate(a, VariableTensor("z")) == ZeroTensor()
         @test differentiate(a + ZeroTensor(), a) == ConstantTensor(1)
+        @test differentiate(a + a, a) == ConstantTensor(1) + ConstantTensor(1)
+        @test differentiate(a + 3*a, a) == ConstantTensor(1) + ConstantTensor(3)
+        @test differentiate(1 / a, a) == (-1 / (a^2))
         @test differentiate(Base.sin(a), a) == Base.cos(a)
         @test differentiate(Base.cos(a), a) == -Base.sin(a)
         @test differentiate(Base.sin(a * VariableTensor("z")), a) == Base.cos(a * VariableTensor("z")) * VariableTensor("z")
+        @test differentiate(Base.tan(Base.cos(a)), a) == - Base.sin(a) / (Base.cos(Base.cos(a))^2)
+        @test differentiate(Base.asin(6*a), a) == 6 / Base.sqrt(Tensor(1) - (6a)^2)
+        @test differentiate(Base.acos(6*a), a) == - Tensor(6) / Base.sqrt(Tensor(1) - (6a)^2)
+        @test differentiate(Base.atan(6*a), a) == 6 / (Tensor(1) + (6a)^2)
+        @test divergence(Tensor([b * sin(a), a * sin(b)], V2), a, b) == b * cos(a) + a * cos(b)
+        @test divergence(Tensor([a, a], V2) + Tensor([b, b], V2), a, b) == Tensor(1) + Tensor(1)
+        @test divergence(Tensor([43, a * sin(b)], V2), a, b) == a * cos(b)
+        @test divergence(a * b * Tensor([5, 1], V2), a, b) == 5b + a
+        @test divergence(a * (Tensor([0, 5b], V2) + Tensor([2b, 0], V2)), a, b) == 5a + 2b
+        @test_throws DimensionMismatch divergence(Tensor([1, 2, 3], V3), a, b)
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin
