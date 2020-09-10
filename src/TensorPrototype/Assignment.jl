@@ -21,7 +21,7 @@ function _assign(A::ZeroTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:Abstr
 end
 
 function _assign(A::DeltaTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
-    return DeltaTensor(replaceshape(A, pair)[1:(end/2)]...)
+    return DeltaTensor(replaceshape(A, pair)...)
 end
 
 function _assign(A::VariableTensor{rank}, pair::Pair{T1, T2}) where {rank, T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
