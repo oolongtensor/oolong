@@ -68,28 +68,18 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
-"""Shorthand for multiplication of two scalars. Returns an
-OuterProductOperation and simplifies for multiplication by zero or one.
-    
+"""Shorthand for multiplying a tensor by a scalar. 
 If multiplying a number by a variable, the number must be first."""
-function Base.:*(x::Scalar, y::AbstractTensor{0})
-    if x == 1 || x == ConstantTensor(1)
-        return Tensor(y)
-    elseif y == ConstantTensor(1)
-        return Tensor(x)
-    elseif x == 0 || x isa ZeroTensor || y isa ZeroTensor
-        return ZeroTensor()
-    else
-        return Tensor(x) ⊗ Tensor(y)
-    end
-end
-
-"""Shorthand for multiplying a tensor by a scalar."""
 function Base.:*(x::Scalar, A::AbstractTensor)
     if x == 1 || x == ConstantTensor(1)
         return A
+    elseif A == ConstantTensor(1)
+        return Tensor(x)
+    elseif x == 0 || x isa ZeroTensor || A isa ZeroTensor
+        return ZeroTensor(A.shape...)
+    else
+        return Tensor(x) ⊗ A
     end
-    return Tensor(x) ⊗ A
 end
 
 function Base.:-(A::AbstractTensor)
