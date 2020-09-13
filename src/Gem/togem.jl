@@ -15,12 +15,6 @@ function _togem(visited, A::Tensor{T}) where T
     return gems[1]
 end
 
-function _listtensor(A::Array{T}) where T
-    step = strides(A)[end]
-    num_steps = length(A) / step
-    return _listtensor([reshape(A[(i-1)*step : i*step], size(A)[1:(end-1)]) for i in 1:num_steps])
-end
-
 function _togem(visited, A::ConstantTensor{T}) where T<:Number
     # TODO this does not work if any vector space has unknown dimension
     return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
