@@ -50,13 +50,21 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
-"""The general identity tensor."""
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
-    function DeltaTensor(As::Vararg{AbstractVectorSpace})
-        new{length(As)}(As, (), ())
+    function DeltaTensor(Vs::Vararg{AbstractVectorSpace})
+        if length(Vs) == 1
+            throw(DomainError(Vs, "Cannot have delta of dimension 1"))
+        end
+        for V in Vs[2:end]
+            if V != Vs[1] && V != Vs[1]'
+                throw(DomainError(Vs,
+                "The shape of a delta can contain only a single vector space and its dual."))
+            end
+        end
+        new{length(Vs)}(Vs)
     end
 end
 

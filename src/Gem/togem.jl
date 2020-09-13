@@ -20,9 +20,13 @@ function _togem(visited, A::ConstantTensor{T}) where T<:Number
     return gem.Literal(fill(A.value, tuple([dim(V) for V in A.shape]...)))
 end
 
-#=function _togem(visited, A::DeltaTensor)
-    return IdentityGemTensor([dim(V) for V in A.shape]...)
-end=#
+function _togem(A::DeltaTensor)
+    if length(A.shape) == 2
+        return gem.Identity(dim(A.shape[1]))
+    else
+        throw(DomainError("Cannot convert generalised deltas to Gem yet."))
+    end
+end
 
 function _togem(visited, A::ZeroTensor)
     return gem.Zero(tuple([dim(V) for V in A.shape]...))
