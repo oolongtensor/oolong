@@ -92,11 +92,12 @@ Tensor, DeltaTensor, ZeroTensor, ConstantTensor,
 
 Operation, IndexSumOperation, AddOperation, OuterProductOperation, ⊗,
 IndexingOperation, ComponentTensorOperation, componenttensor,
-DivisionOperation,
+DivisionOperation, trace, PowerOperation,
 
-SineOperation, sin, CosineOperation, cos, TangentOperation, tan,
+SineOperation, CosineOperation, TangentOperation, ArcsineOperation,
+ArccosineOperation, ArctangentOperation,
 
-differentiate,
+differentiate, divergence,
 
 Assignment, assign, RootNode,
 
@@ -113,8 +114,8 @@ include("TensorPrototype/Indices.jl")
 include("TensorPrototype/Tensors.jl")
 include("TensorPrototype/Operations.jl")
 include("TensorPrototype/Trigonometry.jl")
-include("TensorPrototype/Differentation.jl")
 include("TreeVisitor/Traversal.jl")
+include("TensorPrototype/Differentation.jl")
 include("TreeVisitor/UpdateNodes.jl")
 include("TensorPrototype/Assignment.jl")
 include("Gem/togem.jl")

@@ -20,6 +20,7 @@ E = VariableTensor("E", V2', V3', Vi)
 F = Tensor(fill(1.5, (2,3)), V2', V3)
 Z = ZeroTensor(V3, V2)
 a = VariableTensor("a")
+b = VariableTensor("b")
 arrayG = [cos(a), 4*sin(a), 4, 7im]
 G = Tensor(arrayG, RnSpace(4))
 H = VariableTensor("H", V2', RnSpace(5))
@@ -54,6 +55,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test (-B).shape == (V3, V2)
             @test (A - B) isa AddOperation
         end
+        @testset "Power" begin
+            @test A[1,2]^2 isa PowerOperation
+            @test sqrt(a) isa PowerOperation
+            @test sqrt(a).children == (a, ConstantTensor(1//2))
+        end
         @testset "Division" begin
             @test_throws DivideError A / ZeroTensor()
             @test_throws DivideError A / 0
@@ -79,6 +85,16 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test C[w, z, z'].freeindices == (w,)
             @test C[w, z, z'].children[2] == Indices(z)
         end
+        @testset "Transpose" begin
+            @test transpose(A).shape == reverse(A.shape)
+            @test transpose(A) isa ComponentTensorOperation
+            @test transpose(C).shape == reverse(C.shape)
+        end
+        @testset "Trace" begin
+            @test trace(VariableTensor("X", V3, V3')) isa IndexSumOperation
+            @test_throws DomainError trace(VariableTensor("X", V3, V3))
+            @test_throws MethodError trace(VariableTensor("X", V3, V3, V3'))
+        end
     end
     @testset "Tensors" begin
         @test_throws DomainError Tensor([1, 2], VectorSpace(3), VectorSpace(2))
@@ -102,14 +118,32 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test_throws MethodError Base.sin(A)
         @test_throws MethodError Base.cos(A)
         @test_throws MethodError Base.tan(A)
+        @test Base.asin(Tensor(.4)) isa ArcsineOperation
+        @test_throws DomainError Base.asin(Tensor(4))
+        @test Base.acos(Tensor(.4)) isa ArccosineOperation
+        @test_throws DomainError Base.acos(Tensor(4))
+        @test Base.atan(Tensor(40)) isa ArctangentOperation
     end
     @testset "Differentation" begin
         @test differentiate(a, a) == ConstantTensor(1)
         @test differentiate(a, VariableTensor("z")) == ZeroTensor()
         @test differentiate(a + ZeroTensor(), a) == ConstantTensor(1)
+        @test differentiate(a + a, a) == ConstantTensor(1) + ConstantTensor(1)
+        @test differentiate(a + 3*a, a) == ConstantTensor(1) + ConstantTensor(3)
+        @test differentiate(1 / a, a) == (-1 / (a^2))
         @test differentiate(Base.sin(a), a) == Base.cos(a)
         @test differentiate(Base.cos(a), a) == -Base.sin(a)
         @test differentiate(Base.sin(a * VariableTensor("z")), a) == Base.cos(a * VariableTensor("z")) * VariableTensor("z")
+        @test differentiate(Base.tan(Base.cos(a)), a) == - Base.sin(a) / (Base.cos(Base.cos(a))^2)
+        @test differentiate(Base.asin(6*a), a) == 6 / Base.sqrt(Tensor(1) - (6a)^2)
+        @test differentiate(Base.acos(6*a), a) == - Tensor(6) / Base.sqrt(Tensor(1) - (6a)^2)
+        @test differentiate(Base.atan(6*a), a) == 6 / (Tensor(1) + (6a)^2)
+        @test divergence(Tensor([b * sin(a), a * sin(b)], V2), a, b) == b * cos(a) + a * cos(b)
+        @test divergence(Tensor([a, a], V2) + Tensor([b, b], V2), a, b) == Tensor(1) + Tensor(1)
+        @test divergence(Tensor([43, a * sin(b)], V2), a, b) == a * cos(b)
+        @test divergence(a * b * Tensor([5, 1], V2), a, b) == 5b + a
+        @test divergence(a * (Tensor([0, 5b], V2) + Tensor([2b, 0], V2)), a, b) == 5a + 2b
+        @test_throws DimensionMismatch divergence(Tensor([1, 2, 3], V3), a, b)
     end
     @testset "TreeVisitor" begin
         @testset "Update children" begin
@@ -202,7 +236,12 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
             @test togem(A[x, y]⊗F[y']).free_indices == togem(Indices(x))
         end
         @testset "Trigonometry" begin
-            @test isinst(togem(sin(a)), gem.MathFunction)
+            @test togem(sin(a)).name == "sin"
+            @test togem(cos(a)).name == "cos"
+            @test togem(tan(a)).name == "tan"
+            @test togem(asin(a)).name == "asin"
+            @test togem(acos(a)).name == "acos"
+            @test togem(atan(a)).name == "atan"
         end
     end
     # These tests only check that no errors are occurring, they do not check correctness.
@@ -223,7 +262,11 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test execute(Kernel(A[1, y]⊗H[y']), Dict("A"=>fill(1.0, (3,2)), "H"=>fill(-1.0, (5,2)))) == fill(-2.0, (1,5))
         @test execute(I, "a"=>1.0) == reshape([0.0 + i for i in 1:12],(1,2,2,3))
         @test execute(Tensor([sin(a), cos(a), tan(a)], V3), "a"=>1.0) == reshape([sin(1), cos(1), tan(1)], (1, 3))
+        @test execute(Tensor([asin(a), acos(a), atan(a)], V3), "a"=>0.5) == reshape([asin(0.5), acos(0.5), atan(0.5)], (1, 3))
         @test execute(A / a, "A"=>fill(3.0, (3, 2)), "a"=>1.5) == fill(2.0, (1, 3, 2))
+        @test execute(trace(Tensor([1 2 ; 3 4], V2, V2'))) == [5.0]
+        @test execute(sqrt(a), "a"=>4.0) == [2.0]
+        @test execute(a^a, "a"=>3.0) == [27.0]
     end
     @testset "find variables" begin
         @test findvariables((A[x, y] + D[y', z])⊗B) == Set{VariableTensor}([A, D])

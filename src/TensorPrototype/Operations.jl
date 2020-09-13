@@ -68,28 +68,18 @@ function ⊗(x::AbstractTensor, y::AbstractTensor)
     return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
 end
 
-"""Shorthand for multiplication of two scalars. Returns an
-OuterProductOperation and simplifies for multiplication by zero or one.
-    
+"""Shorthand for multiplying a tensor by a scalar. 
 If multiplying a number by a variable, the number must be first."""
-function Base.:*(x::Scalar, y::AbstractTensor{0})
-    if x == 1 || x == ConstantTensor(1)
-        return Tensor(y)
-    elseif y == ConstantTensor(1)
-        return Tensor(x)
-    elseif x == 0 || x isa ZeroTensor || y isa ZeroTensor
-        return ZeroTensor()
-    else
-        return Tensor(x) ⊗ Tensor(y)
-    end
-end
-
-"""Shorthand for multiplying a tensor by a scalar."""
 function Base.:*(x::Scalar, A::AbstractTensor)
     if x == 1 || x == ConstantTensor(1)
         return A
+    elseif A == ConstantTensor(1)
+        return Tensor(x)
+    elseif x == 0 || x isa ZeroTensor || A isa ZeroTensor
+        return ZeroTensor(A.shape...)
+    else
+        return Tensor(x) ⊗ A
     end
-    return Tensor(x) ⊗ A
 end
 
 function Base.:-(A::AbstractTensor)
@@ -98,6 +88,27 @@ end
 
 function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
+end
+
+struct PowerOperation{rank} <: Operation{rank}
+    shape::Tuple{}
+    children::Tuple{AbstractTensor{0}, AbstractTensor{0}}
+    freeindices::Tuple{Vararg{FreeIndex}}
+    function PowerOperation(x::AbstractTensor{0}, y::AbstractTensor{0})
+        new{0}((), (x, y), (x.freeindices..., y.freeindices...))
+    end
+end
+
+function Base.:^(x::AbstractTensor{0}, y::AbstractTensor{0})
+    return PowerOperation(x, y)
+end
+
+function Base.:^(x::AbstractTensor{0}, y::Number)
+    return x^Tensor(y)
+end
+
+function Base.sqrt(x::AbstractTensor{0})
+    return PowerOperation(x, Tensor(1//2))
 end
 
 struct DivisionOperation{rank} <: Operation{rank}
@@ -120,6 +131,10 @@ end
 
 function Base.:/(A::AbstractTensor, y::Number)
     return DivisionOperation(A, Tensor(y))
+end
+
+function Base.:/(y::Number, A::AbstractTensor{0})
+    return DivisionOperation(Tensor(y), A)
 end
 
 """A node symbolising indexing a tensor by its every dimension."""
@@ -195,6 +210,25 @@ function Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
         push!(indexarray, toindex(A.shape[i], ys[i]))
     end
     return Base.getindex(A, indexarray...)
+end
+
+function Base.transpose(A::AbstractTensor)
+    indices = []
+    for V in A.shape
+        global idcounter
+        push!(indices, FreeIndex(V, "tranpose", idcounter))
+        idcounter += 1
+    end
+    return componenttensor(A[indices...], reverse(indices)...)
+end
+
+function trace(A::AbstractTensor{2})
+    if A.shape[1] != dual(A.shape[2])
+        throw(DomainError(A, "Cannot get a trace from a tensor whose shape is not of the form (V, V')"))
+    end
+    global counter
+    counter += 1
+    return A[FreeIndex(A.shape[1], "trace", counter), FreeIndex(A.shape[2], "trace", counter)]
 end
 
 function Base.show(io::IO, op::Operation, depth::Int)
