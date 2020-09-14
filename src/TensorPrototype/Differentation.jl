@@ -66,6 +66,14 @@ function _divergence(A::Tensor{T, 1}, vars::Tuple{Vararg{VariableTensor{0}}}, di
     return +([Tensor(differentiate(A.value[i], vars[i])) for i in 1:length(vars)]...)
 end
 
+function  _divergence(A::ConstantTensor{T, 1}, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn) where T
+    return +([differentiate(A.value, var) for var in vars]...)
+end
+
+function _divergence(A::TerminalTensor{1}, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn)
+    return ZeroTensor(A.shape...)
+end
+
 function _divergence(op::OuterProductOperation{1}, vars::Tuple{Vararg{VariableTensor{0}}}, divergencefn)
     x, A = op.children
     if length(A.shape) == 0
@@ -75,12 +83,18 @@ function _divergence(op::OuterProductOperation{1}, vars::Tuple{Vararg{VariableTe
         return divergencefn(+([x*child for child in A.children]...))
     elseif A isa Tensor{T,1} where T
         return divergencefn(Tensor([y*x for y in A.value], A.shape...))
+    elseif A isa ConstantTensor{T, 1} where T
+        return divergencefn(ConstantTensor(A.value * x, A.shape...))
+    elseif A isa ZeroTensor{T, 1} where T
+        return ZeroTensor()
     elseif A isa OuterProductOperation
         y, B = A.children
         if length(B.shape) == 0
             y, B = B, y
         end
         return divergencefn((x * y) * B)
+    else
+        throw(DomainError(op, "Cannot be differentiated further"))
     end
 end
 

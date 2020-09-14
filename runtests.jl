@@ -143,6 +143,7 @@ I = Tensor(reshape([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, ConstantTensor(11) + a], 
         @test divergence(Tensor([43, a * sin(b)], V2), a, b) == a * cos(b)
         @test divergence(a * b * Tensor([5, 1], V2), a, b) == 5b + a
         @test divergence(a * (Tensor([0, 5b], V2) + Tensor([2b, 0], V2)), a, b) == 5a + 2b
+        @test divergence(a * ConstantTensor(1, V2), a, b) == ConstantTensor(1)
         @test_throws DimensionMismatch divergence(Tensor([1, 2, 3], V3), a, b)
     end
     @testset "TreeVisitor" begin
