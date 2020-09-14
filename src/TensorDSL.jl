@@ -26,7 +26,6 @@ function __init__()
     generate_loopy = tsfcloopy.generate
     import numpy as np
     import loopy
-    from loopy.codegen import generate_code_for_a_single_kernel
     from pyop2 import op2
 
     # Copy pasted and modified from https://github.com/firedrakeproject/firedrake/blob/2d0351fa769da4fa2d807355526e9400b778fb66/firedrake/slate/slac/compiler.py#L605
