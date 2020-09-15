@@ -1,11 +1,17 @@
-"""A type for all the tensors and tensor like objects.
+"""
+    AbstractTensor{rank}
 
-The rank means the number of indices. For example AbstractTensor{0} is a
+A type for all the tensors and tensor like objects.
+
+The rank means the number of vector spaces in the shape. For example AbstractTensor{0} is a
 scalar, and AbstractTensor{2} a matrix.
 """
 abstract type AbstractTensor{rank} <: Node end
 
-"""A type for the tensors which are terminal nodes, i.e not created by
+"""
+    TerminalTensor{rank}
+
+A type for the tensors which are terminal nodes, i.e not created by
 operations.
 """
 abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
@@ -14,7 +20,11 @@ abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 tensors of rank 0 and numbers."""
 Scalar = Union{Number, AbstractTensor{0}}
 
-"""Tensors of which we only know in which vector spaces their indices are."""
+"""
+    VariableTensor(name::String, shape::Vararg{AbstractVectorSpace})
+
+Tensors of which we only know in which vector spaces their indices are. The
+rank is the lenght of the shape."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
     name::String
     shape::Tuple{Vararg{AbstractVectorSpace}}
@@ -38,7 +48,10 @@ function checktensordimensions(x::AbstractArray, Vs::Vararg{AbstractVectorSpace}
     end
 end
 
-"""Tensor created from a multidimensional array."""
+"""
+    Tensor(x::Array{T}, Vs::Vararg{AbstractVectorSpace}) where T
+
+Tensor{T, length(VS)} created from a multidimensional array."""
 struct Tensor{T, rank} <: TerminalTensor{rank}
     value::Array{T}
     shape::Tuple{Vararg{AbstractVectorSpace}}
@@ -51,7 +64,12 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
-"""Symbolic delta tensor."""
+"""
+    DeltaTensor(Vs::Vararg{AbstractVectorSpace})
+
+Symbolic delta tensor. Each vector space in Vs must be either equal to other
+vector spaces or their duals.
+"""
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -70,7 +88,10 @@ struct DeltaTensor{rank} <: TerminalTensor{rank}
     end
 end
 
-"""Symbolic zero tensor."""
+"""
+    ZeroTensor(Vs::Vararg{AbstractVectorSpace})
+
+Symbolic zero tensor of the shape Vs."""
 struct ZeroTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -80,7 +101,11 @@ struct ZeroTensor{rank} <: TerminalTensor{rank}
     end
 end
 
-"""A tensor where every entry is of the same value."""
+"""
+    ConstantTensor(value::T, Vs::Vararg{AbstractVectorSpace}) where (T <: Scalar)
+
+A tensor where every entry is of the same value. Creates
+ConstantTensor{T, length(Vs)}. If value == 0, creates a [`ZeroTensor`](@ref)."""
 struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -94,10 +119,12 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
-"""A convenience function. Allows calling Tensor on any scalar."""
 Tensor(x::AbstractTensor{0}) = x
 ConstantTensor(x::AbstractTensor{0}) = x
-"""Turns non-tensor scalar into a tensor."""
+"""
+    Tensor(x::T) where (T <: Scalar)
+
+Turns a non-tensor scalar into a tensor. A tensor scalar does not change."""
 Tensor(x::T) where (T <: Scalar) = ConstantTensor(x)
 
 function printtensor(io, s::String, A::AbstractTensor)
