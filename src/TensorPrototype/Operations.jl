@@ -6,9 +6,10 @@ struct IndexSumOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
+    function IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex})
+        new{length(A.shape)}(A.shape, (A, indices), freeindices)
+    end
 end
-
-IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex}) = IndexSumOperation{length(A.shape)}(A.shape, (A, indices), freeindices)
 
 """Checks if we have have an upper and lower index. If there is, we create
 an IndexSumOperation node."""
