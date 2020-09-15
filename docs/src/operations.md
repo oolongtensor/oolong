@@ -1,0 +1,3 @@
+```@docs
+togem(node::Node)
+```
