@@ -96,8 +96,8 @@ struct ZeroTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
     freeindices::Tuple{}
-    function ZeroTensor(As::Vararg{AbstractVectorSpace})
-        new{length(As)}(As, (), ())
+    function ZeroTensor(Vs::Vararg{AbstractVectorSpace})
+        new{length(Vs)}(Vs, (), ())
     end
 end
 
@@ -111,11 +111,11 @@ struct ConstantTensor{T, rank} <: TerminalTensor{rank}
     children::Tuple{}
     freeindices::Tuple{}
     value::T
-    function ConstantTensor(value::T, As::Vararg{AbstractVectorSpace}) where (T <: Scalar)
+    function ConstantTensor(value::T, Vs::Vararg{AbstractVectorSpace}) where (T <: Scalar)
         if value == 0
-            return ZeroTensor(As...)
+            return ZeroTensor(Vs...)
         end
-        new{T, length(As)}(As, (), (), value)
+        new{T, length(Vs)}(Vs, (), (), value)
     end
 end
 
