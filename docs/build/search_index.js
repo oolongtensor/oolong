@@ -1,3 +1,3 @@
 var documenterSearchIndex = {"docs":
-[{"location":"index.html","page":"-","title":"-","text":"Hello World!","category":"page"}]
+[{"location":"index.html","page":"TensorDSL Documentation","title":"TensorDSL Documentation","text":"Hello World!","category":"page"},{"location":"index.html#TensorDSL-Documentation","page":"TensorDSL Documentation","title":"TensorDSL Documentation","text":"","category":"section"},{"location":"index.html","page":"TensorDSL Documentation","title":"TensorDSL Documentation","text":"togem(node::Node)","category":"page"},{"location":"index.html#TensorDSL.togem-Tuple{Node}","page":"TensorDSL Documentation","title":"TensorDSL.togem","text":"togem(node::Node)\n\nTranslates node into GEM.\n\n\n\n\n\n","category":"method"}]
 }
