@@ -1,3 +1,5 @@
+## Functions
+
 ```@docs
 Base.:+(nodes::Vararg{Node})
 ⊗(A::AbstractTensor, B::AbstractTensor)
@@ -14,4 +16,10 @@ Base.getindex(A::AbstractTensor, ys::Vararg{Index})
 Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
 Base.transpose(A::AbstractTensor)
 trace(A::AbstractTensor{2})
+```
+
+## Nodes
+
+```@docs
+Operation
 ```
