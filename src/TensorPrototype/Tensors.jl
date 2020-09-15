@@ -11,7 +11,7 @@ operations.
 abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 
 """A union type for everything that can be treated as a scalar."""
-Scalar = Union{Base.Complex, Base.Real, AbstractTensor{0}}
+Scalar = Union{Number, AbstractTensor{0}}
 
 """Tensors of which we only know in which vector spaces their indices are."""
 struct VariableTensor{rank} <: TerminalTensor{rank}
