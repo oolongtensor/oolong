@@ -1,5 +1,5 @@
 """
-    AbstractTensor{rank}
+    AbstractTensor{rank} <: Node
 
 A type for all the tensors and tensor like objects.
 
@@ -9,7 +9,7 @@ scalar, and AbstractTensor{2} a matrix.
 abstract type AbstractTensor{rank} <: Node end
 
 """
-    TerminalTensor{rank}
+    TerminalTensor{rank} <: AbstractTensor{rank}
 
 A type for the tensors which are terminal nodes, i.e not created by
 operations.

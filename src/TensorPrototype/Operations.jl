@@ -1,4 +1,7 @@
-"""A supertype for all tensor operations."""
+"""
+Operation{rank} <: AbstractTensor{rank}
+
+A supertype for all tensor operations."""
 abstract type Operation{rank} <: AbstractTensor{rank} end
 
 """Symbolises summing over given indices."""
