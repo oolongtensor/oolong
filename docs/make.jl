@@ -9,6 +9,7 @@ makedocs(sitename="Oolong",
     pages = [
         "Home" => "index.md",
         "Manual" => Any[
+            "Tensors" => "tensors.md",
             "Operations" => "operations.md",
         ],
     ]
