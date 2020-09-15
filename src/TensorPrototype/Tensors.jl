@@ -10,7 +10,8 @@ operations.
 """
 abstract type TerminalTensor{rank} <: AbstractTensor{rank} end
 
-"""A union type for everything that can be treated as a scalar."""
+"""A union type for everything that can be treated as a scalar. Includes
+tensors of rank 0."""
 Scalar = Union{Base.Complex, Base.Real, AbstractTensor{0}}
 
 """Tensors of which we only know in which vector spaces their indices are."""
@@ -50,6 +51,7 @@ struct Tensor{T, rank} <: TerminalTensor{rank}
     end
 end
 
+"""Symbolic delta tensor."""
 struct DeltaTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
@@ -68,6 +70,7 @@ struct DeltaTensor{rank} <: TerminalTensor{rank}
     end
 end
 
+"""Symbolic zero tensor."""
 struct ZeroTensor{rank} <: TerminalTensor{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{}
