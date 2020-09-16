@@ -11,6 +11,7 @@ makedocs(sitename="Oolong",
         "Manual" => Any[
             "Tensors" => "tensors.md",
             "Operations" => "operations.md",
+            "Execution and building" => "execute.md"
         ],
     ]
 )

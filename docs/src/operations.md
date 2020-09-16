@@ -18,8 +18,15 @@ Base.transpose(A::AbstractTensor)
 trace(A::AbstractTensor{2})
 ```
 
-## Nodes
+## Operation Nodes
 
 ```@docs
 Operation
+AddOperation
+OuterProductOperation
+DivisionOperation
+PowerOperation
+ComponentTensorOperation
+IndexingOperation
+IndexSumOperation
 ```
