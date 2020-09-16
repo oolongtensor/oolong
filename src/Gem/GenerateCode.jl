@@ -1,11 +1,3 @@
-function execute(node::Node, variables::Array)
-    return executegem(togem(node), findgemvariables(node), variables)
-end
-
-function execute(node::Node)
-    return execute(node, [])
-end
-
 """
     Kernel(node::Node)
 
