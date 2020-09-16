@@ -1,7 +1,14 @@
-"""Abstract index supertype"""
+"""
+    Index
+
+Abstract index supertype.
+"""
 abstract type Index end
 
-"""An index whose value is not known. Identified by its name. There should be
+"""
+    FreeIndex(V::T, name::String, id=0) where {T<:AbstractVectorSpace}
+
+An index whose value is not known. Identified by its name. There should be
 no need to set the id by the user.
 """
 struct FreeIndex{T<:AbstractVectorSpace} <: Index
@@ -12,10 +19,11 @@ end
 
 FreeIndex(V::T, name::String) where {T<:AbstractVectorSpace} = FreeIndex(V, name, 0)
 
-"""Creates an index with the same name in the dual space."""
-Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V), i.name, i.id)
+"""
+    FixedIndex(V::T, value::Int) where {T<:AbstractVectorSpace}
 
-"""An index whose value is known."""
+An index whose value is known.
+"""
 struct FixedIndex{T<:AbstractVectorSpace} <: Index
     V::T
     value::Int
@@ -27,10 +35,19 @@ struct FixedIndex{T<:AbstractVectorSpace} <: Index
     end
 end
 
-"""Creates an index with the same value in the dual space."""
+"""
+    Base.adjoint(i::Index)
+
+Creates an index with the same name/value in the dual space.
+"""
+Base.adjoint(i::FreeIndex) = FreeIndex(dual(i.V), i.name, i.id)
 Base.adjoint(i::FixedIndex) = FixedIndex(dual(i.V), i.value)
 
-"""A node for holding indices."""
+"""
+    Indices(indices::Vararg{Index})
+
+A node that represents a tuple of indices.
+"""
 struct Indices <: Node
     indices
     children
@@ -38,17 +55,20 @@ end
 
 Indices(indices::Vararg{Index}) = Indices(indices, ())
 
-"""Creates an index from an integer and VectorSpace."""
+"""
+    toindex(V::AbstractVectorSpace, i)
+
+Given a vectorspace V, creates an index of the string or integer i. If i is an
+index, returns i.
+"""
 function toindex(V::AbstractVectorSpace, i::Int)
     return FixedIndex(V, i)
 end
 
-"""Creates an index from a string and VectorSpace."""
 function toindex(V::AbstractVectorSpace, s::String)
     return FreeIndex(V, s)
 end
 
-"""Added for convenience."""
 function toindex(V::AbstractVectorSpace, i::Index)
     return i
 end
