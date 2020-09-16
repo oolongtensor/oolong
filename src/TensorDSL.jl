@@ -6,8 +6,6 @@ using PyCall
 const gem = PyNULL()
 const tsfc = PyNULL()
 const isinst = PyNULL()
-const gemtoloopy = PyNULL()
-const executegem = PyNULL()
 const gemtoop2knl = PyNULL()
 const executeop2knl = PyNULL()
 
@@ -72,8 +70,6 @@ function __init__()
         return execute_op2knl(gem_to_op2knl(gem_expr, gem_variables), gem_expr.shape, variables)
 
     """
-    copy!(gemtoloopy, py"gem_to_loopy")
-    copy!(executegem, py"execute_gem")
     copy!(gemtoop2knl, py"gem_to_op2knl")
     copy!(executeop2knl, py"execute_op2knl")
 
@@ -104,7 +100,7 @@ updatechildren, updatevectorspace,
 
 togem, execute, Kernel,
 
-gem, isinst, gemtoloopy, executegem, gemtoop2knl, executeop2knl, findvariables
+gem, isinst, gemtoop2knl, executeop2knl, findvariables
 
 TensorDSL
 include("TensorPrototype/Node.jl")
