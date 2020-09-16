@@ -41,7 +41,7 @@ function execute(node::Node, variables::Dict{String, T}) where T
 end
 
 """
-    execute(expr::Union{Node, Kernel}, variables::Dict{String, T}) where T
+    execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
 
 Execute the [`Kernel`](@ref) knl or [`Node`](@ref) with the
 variable-assignments in variables.
