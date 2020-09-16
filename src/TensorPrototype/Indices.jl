@@ -56,7 +56,7 @@ end
 Indices(indices::Vararg{Index}) = Indices(indices, ())
 
 """
-    toindex(V::AbstractVectorSpace, i)
+    toindex(V::AbstractVectorSpace, i::Union{String, Int, Index})
 
 Given a vectorspace V, creates an index of the string or integer i. If i is an
 index, returns i.
