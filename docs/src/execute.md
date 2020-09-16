@@ -12,9 +12,7 @@ using [PyOp2](https://github.com/OP2/PyOP2).
 In most cases the user does not need to do this directly. They can create a
 PyOp2 [`Kernel`](@ref) and execute it with the function [`execute(knl::Kernel, variables::Dict{String, T}) where T`](@ref).
 If they want, they can also execute the node directly with the [`execute(knl::Kernel, variables::Dict{String, T}) where T`](@ref)-function.
-```@docs
-Kernel
-execute(knl::Kernel, variables::Dict{String, T}) where T
-execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
-togem(node::Node)
+```@autodocs
+Modules = [TensorDSL]
+Pages   = ["GenerateCode.jl", "togem.jl"]
 ```

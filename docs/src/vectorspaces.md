@@ -1,11 +1,5 @@
 ## Vector Spaces
-
-```@docs
-AbstractVectorSpace
-VectorSpace
-DualVectorSpace
-RnSpace
-dual
-dim
-adjoint
+```@autodocs
+Modules = [TensorDSL]
+Pages   = ["VectorSpace.jl"]
 ```
