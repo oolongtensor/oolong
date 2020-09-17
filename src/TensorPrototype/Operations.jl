@@ -367,12 +367,12 @@ function trace(A::AbstractTensor{2})
 end
 
 function Base.show(io::IO, op::Operation, depth::Int)
-    println(io, ["\t" for i in 1:depth]..., typeof(op))
+    println(io, ["    " for i in 1:depth]..., typeof(op))
     for child in op.children
         if child isa Operation
             Base.show(io, child, depth + 1)
         else
-            println(io, ["\t" for i in 1:(depth+1)]..., child)
+            println(io, ["    " for i in 1:(depth+1)]..., child)
         end
     end
 end
