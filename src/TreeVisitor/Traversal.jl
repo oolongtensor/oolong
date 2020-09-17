@@ -18,10 +18,6 @@ function _traversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing}, v
     end
 end
 
-"""
-visitfn requires the interface node::Node, visitfnargs, _posttraversal
-or node::Node, _posttraversal if visitfnargs is nothing.
-"""
 function _posttraversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing}, visited)
     if haskey(visited, node)
         return visited[node]
@@ -34,6 +30,36 @@ function _posttraversal(node, visitfn::Function, visitfnargs::Union{Any, Nothing
     end
 end
 
+"""
+    traversal(node, pretraversalfn::Function, visitfn::Function,
+        pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing},
+        visited::Union{Dict, Nothing}, posttraversal=false)
+
+Traverses an AST, calling visitfn on the nodes of the tree.
+
+# Arguments
+- `node`: the root of the tree to traverse. Assumes that each node has children
+attribute.
+- `pretraversalfn::Function` A function to be executed before the traversal
+- `visitfn::Function` The function that is executed on each visit. If
+posttraversal is false, and visitfnargs nothing, the function must have signature 
+`visitfn(visited, node, new_children...)`. If visitfnargs is not nothing, the
+signature is `visitfn(visited, node, visitfnargs, new_children...). If
+posttraversal is true, the signature must be `visitfn(node, fn)`,
+or `visitfn(node, visitfn, fn)`, where `fn` is a function that calls traversal
+on a node.
+- `pretraversalfnargs::Union{Any, Nothing}` Arguments for the pretraversalfn.
+- `visitfnargs::Union{Any, Nothing}` Arguments for traversalfn.
+- `visited::Union{Dict, Nothing}` If not nothing, a dictionary with the results
+of calling traversalfn on different nothing. If nothing, this dictionary is
+created in traversal.
+- `posttraversal=false` Determines the way traversal traverses each node. If
+`posttraversal=false`, the traversal first processes the children of a node,
+and then the parent node (example: [`togem(node::Node)`](@ref)). If
+`posttraversal=true`, the visitfn first processes the parent and then calls
+visitfn on its children if needed (example:
+[`differentiate(A::AbstractTensor{0}, x::VariableTensor{0})`](@ref)).
+"""
 function traversal(node, pretraversalfn::Function, visitfn::Function,
         pretraversalfnargs::Union{Any, Nothing}, visitfnargs::Union{Any, Nothing},
         visited::Union{Dict, Nothing}, posttraversal::Bool)

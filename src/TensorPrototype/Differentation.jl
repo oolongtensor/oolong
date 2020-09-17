@@ -55,7 +55,7 @@ end
 """
     differentiate(A::AbstractTensor{0}, x::VariableTensor{0})
 
-Differentiates A w.r.t y.
+Differentiates A w.r.t x.
 """
 function differentiate(A::AbstractTensor{0}, x::VariableTensor{0})
     return traversal(A, x -> x, _differentiate, nothing, x, nothing, true)
