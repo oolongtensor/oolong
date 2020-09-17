@@ -9,6 +9,7 @@ makedocs(sitename="Oolong",
     pages = [
         "Home" => "index.md",
         "Manual" => Any[
+            "Abstract syntax tree" => "ast.md",
             "Vector Spaces" => "vectorspaces.md",
             "Indices" => "indices.md",
             "Tensors" => "tensors.md",
