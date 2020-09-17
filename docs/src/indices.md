@@ -1,6 +1,6 @@
-## Indices
+# Indices
 
-Indices in Oolong are tied to particular [`Vector Spaces`](@ref). When creating an index,
+Indices in Oolong are tied to particular [`AbstractVectorSpace`](@ref). When creating an index,
 one must also specify the vector space they are indexing.
 
 Indices on their own are not nodes in AST. Instead, a tuple of indices can be

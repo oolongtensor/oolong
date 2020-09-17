@@ -1,4 +1,4 @@
-## Compilation
+# Compilation
 
 Oolong is compiled using [FireDrake's](https://firedrakeproject.org/)
 infrastructure.

@@ -76,7 +76,8 @@ end
 """
     Base.:+(nodes::Vararg{Node})
 
-Creates an [`AddOperation`](@ref) whose children are the nodes.
+Creates an [`AddOperation`](@ref) whose children are the nodes. The shapes of
+the nodes must match.
 """
 function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
