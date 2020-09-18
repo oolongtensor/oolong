@@ -21,3 +21,7 @@ makedocs(sitename="Oolong",
         "Python-Julia compatibility" => "python.md"
     ]
 )
+
+deploydocs(
+    repo = "github.com/oolongtensor/oolong.git",
+)

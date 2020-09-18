@@ -11,7 +11,12 @@ const executeop2knl = PyNULL()
 
 # https://github.com/JuliaPy/PyCall.jl/blob/master/README.md#using-pycall-from-julia-modules
 function __init__()
-    copy!(tsfc, pyimport("tsfc"))
+    try
+        copy!(tsfc, pyimport("tsfc"))
+    catch LoadError
+        println("Cannot import firedrake. Check that you are in the correct virtual environment.")
+        return
+    end
     copy!(gem, tsfc.fem.gem)
     copy!(isinst, pybuiltin("isinstance"))
     py"""
