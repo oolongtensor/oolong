@@ -22,5 +22,5 @@ makedocs(sitename="Oolong",
 )
 
 deploydocs(
-    repo = "github.com/oolong/TensorDSL.git",
+    repo = "github.com/oolongtensor/oolong.git",
 )
