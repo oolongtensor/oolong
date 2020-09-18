@@ -20,3 +20,7 @@ makedocs(sitename="Oolong",
         "Python-Julia compatibility" => "python.md"
     ]
 )
+
+deploydocs(
+    repo = "github.com/oolong/TensorDSL.jl.git",
+)
