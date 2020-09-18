@@ -1,5 +1,19 @@
 # Tensors
 
+The tensor product of two vector spaces ``E`` and ``F`` is a new vector space,
+denoted by ``E⊗F``. It is spanned by the elements ``e⊗f`` where
+``e \in E= e_i \phi_i`` and  ``f \in F= f_j \psi_j`` then
+``g \in E ⊗ F= g_{ij} \phi_i ⊗ \psi_j``.
+
+Tensors are these objects in the vector spaces created by tensors products
+
+Mathematically, tensor ``T`` is ``T \in E_1⊗…⊗E_p⊗F_1^∗⊗…⊗F_q^∗`` (or a permutation of these),
+where ``E_i`` and ``F_j^∗`` are vector and dual spaces, respectively
+Programmatically this means that tensors objects with shape and data. Shape
+describes the tensor space ``E_1⊗…⊗E_p⊗F_1^∗⊗…⊗F_q^∗`` and data describes the
+vector within this tensor space.
+
+
 There are two main types of tensors in Oolong: tensors created from
 multidimensional arrays:
 

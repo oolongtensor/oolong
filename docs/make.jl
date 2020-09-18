@@ -16,5 +16,7 @@ makedocs(sitename="Oolong",
             "Operations" => "operations.md",
             "Execution and building" => "execute.md"
         ],
+        "Improvements" => "future.md",
+        "Python-Julia compatibility" => "python.md"
     ]
 )

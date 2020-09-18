@@ -1,7 +1,7 @@
 # Oolong
-Prototype for a symbolic Tensor DSL in Julia. 
-
-Turns tensor operations into an abstract syntax tree.
+Oolong is prototype of a symbolic Tensor DSL in Julia. Its goal is to see how
+well Julia works for creating a DSL and how well it could work together with 
+Python.
 
 Example:
 ```jldoctest
