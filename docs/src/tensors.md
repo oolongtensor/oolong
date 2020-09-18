@@ -17,25 +17,39 @@ vector within this tensor space.
 There are two main types of tensors in Oolong: tensors created from
 multidimensional arrays:
 
-```
+```jldoctest
+using TensorDSL
+R2 = RnSpace(2)
 A = Tensor([1 2 ; 3 4], R2, R2)
+
+# output
+
+Tensor{Int64,2}, [1 2; 3 4], shape: R^2⊗ R^2
 ```
 
 and tensors with unknown value
-```
-B = VariableTensor(R2, R2)
+```jldoctest
+using TensorDSL
+R2 = RnSpace(2)
+B = VariableTensor("B", R2, R2)
+
+# output
+
+VariableTensor{2}, B, shape: R^2⊗ R^2
 ```
 
 Zero and and identity tensors have their own types.
-```
-Z = ZeroTensor(V4)
-I = DeltaTensor(V4, R2)
+```jldoctest; setup=(using TensorDSL)
+julia> Z = ZeroTensor(RnSpace(3))
+ZeroTensor{1}, shape: R^3
+julia> I = DeltaTensor(RnSpace(3), RnSpace(3))
+DeltaTensor{2}, shape: R^3⊗ R^3
 ```
 
 There is also a type for tensors where all entries have the same value.
-```
-julia> C = ConstantTensor(3, V4, V, V4')
-ConstantTensor{Int64,3}, 3, shape: V4_2⊗ V_3⊗ V4_2*
+```jldoctest; setup=(using TensorDSL)
+julia> C = ConstantTensor(3)
+ConstantTensor{Int64,0}, 3, shape: ()
 ```
 
 ```@autodocs
