@@ -1,7 +1,15 @@
-"""A supertype for all tensor operations."""
+"""
+Operation{rank} <: AbstractTensor{rank}
+
+A supertype for all tensor operations.
+"""
 abstract type Operation{rank} <: AbstractTensor{rank} end
 
-"""Symbolises summing over given indices."""
+"""
+    IndexSumOperation(A::AbstractTensor, indices::Indices, freeindices::Vararg{FreeIndex})
+
+Symbolises summing over given free index of a tensor.
+"""
 struct IndexSumOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
@@ -11,8 +19,11 @@ struct IndexSumOperation{rank} <: Operation{rank}
     end
 end
 
-"""Checks if we have have an upper and lower index. If there is, we create
-an IndexSumOperation node."""
+"""
+    contractioncheck(A::AbstractTensor)
+Checks if we have have an upper and lower index. If there is, we create
+an [`IndexSumOperation`](@ref) node.
+"""
 function contractioncheck(A::AbstractTensor)
     contractionindices = []
     for (i, index) in enumerate(A.freeindices)
@@ -23,54 +34,87 @@ function contractioncheck(A::AbstractTensor)
     if isempty(contractionindices)
         return A
     end
-    freeindices = tuple(setdiff(A.freeindices, [i for i in contractionindices], [i' for i in contractionindices])...)
+    freeindices = tuple(setdiff(A.freeindices, [i for i in contractionindices],
+        [i' for i in contractionindices])...)
     return IndexSumOperation(A, Indices(contractionindices...), freeindices...)
 end
 
-"""A node symbolising addition of tensors."""
+"""
+    AddOperation(children::Tuple{Vararg{AbstractTensor{rank}}},
+        freeindices::Tuple{Vararg{FreeIndex}}) where rank
+
+A node symbolising addition of tensors.
+"""
 struct AddOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{Vararg{AbstractTensor}}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function AddOperation(children::Tuple{Vararg{AbstractTensor{rank}}}, freeindices::Tuple{Vararg{FreeIndex}}) where rank
+    function AddOperation(children::Tuple{Vararg{AbstractTensor{rank}}},
+            freeindices::Tuple{Vararg{FreeIndex}}) where rank
         if length(children) > 1
             for child in children[2:length(children)]
                 if child.shape != children[1].shape
-                    throw(DimensionMismatch(string("Shapes ", children[1].shape, " and ", child.shape, " don't match")))
+                    throw(DimensionMismatch(string(
+                        "Shapes ", children[1].shape, " and ", child.shape,
+                        " don't match")))
                 end
             end
         end
-        newchildren = tuple(filter!(x -> !(x isa ZeroTensor), [children...])...)
+        newchildren = tuple(filter!(x -> !(x isa ZeroTensor),
+            [children...])...)
         if length(newchildren) == 1
             return newchildren[1]
         end
         if length(newchildren) == 0
             return children[1]
         end
-        return contractioncheck(new{rank}(children[1].shape, newchildren, freeindices))
+        return contractioncheck(new{rank}(children[1].shape, newchildren,
+            freeindices))
     end
 end
 
+"""
+    Base.:+(nodes::Vararg{Node})
+
+Creates an [`AddOperation`](@ref) whose children are the nodes. The shapes of
+the nodes must match.
+"""
 function Base.:+(nodes::Vararg{Node})
     return AddOperation(nodes, tuple(union([node.freeindices for node=nodes]...)...))
 end
 
-"""A node symbolising tensor outer product."""
+"""
+    OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}},
+        children::Tuple{AbstractTensor, AbstractTensor},
+
+A node symbolising tensor outer product."""
 struct OuterProductOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, AbstractTensor}, freeindices::Tuple{Vararg{FreeIndex}})
-        return contractioncheck(new{length(shape)}(shape, children, freeindices))
+    function OuterProductOperation(shape::Tuple{Vararg{AbstractVectorSpace}},
+            children::Tuple{AbstractTensor, AbstractTensor},
+            freeindices::Tuple{Vararg{FreeIndex}})
+        return contractioncheck(new{length(shape)}(shape, children,
+            freeindices))
     end
 end
 
-function ⊗(x::AbstractTensor, y::AbstractTensor)
-    return OuterProductOperation((x.shape..., y.shape...), (x, y),  (x.freeindices..., y.freeindices...))
+"""
+    ⊗(A::AbstractTensor, B::AbstractTensor)
+
+Returns an [`OuterProductOperation`](@ref) with A and B as its children.
+"""
+function ⊗(A::AbstractTensor, B::AbstractTensor)
+    return OuterProductOperation((A.shape..., B.shape...), (A, B),  (A.freeindices..., B.freeindices...))
 end
 
-"""Shorthand for multiplying a tensor by a scalar. 
-If multiplying a number by a variable, the number must be first."""
+"""
+    Base.:*(x::Scalar, A::AbstractTensor)
+
+Shorthand for multiplying a tensor by a scalar. 
+If multiplying a number by a variable, the number must be first.
+"""
 function Base.:*(x::Scalar, A::AbstractTensor)
     if x == 1 || x == ConstantTensor(1)
         return A
@@ -83,14 +127,30 @@ function Base.:*(x::Scalar, A::AbstractTensor)
     end
 end
 
+"""
+    Base.:-(A::AbstractTensor)
+
+Unary minus. Creates an [`OuterProductOperation`](@ref) between ConstantTensor(-1) and A.
+"""
 function Base.:-(A::AbstractTensor)
     return -1*A
 end
 
+"""
+    Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
+
+Binary minus. Creates an [`AddOperation`](@ref) of A and -1*B.
+"""
 function Base.:-(A::AbstractTensor{rank}, B::AbstractTensor{rank}) where rank
     return A + (-1*B)
 end
 
+
+"""
+    PowerOperation(x::AbstractTensor{0}, y::AbstractTensor{0})
+
+Symbolises raising a scalar-shaped tensor x to a scalar-shaped power y.
+"""
 struct PowerOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor{0}, AbstractTensor{0}}
@@ -100,18 +160,43 @@ struct PowerOperation{rank} <: Operation{rank}
     end
 end
 
+"""
+    Base.:^(x::AbstractTensor{0}, y::AbstractTensor{0})
+
+Raises the scalar-shaped tensor x to the scalar-shaped power y. Returns a
+[`PowerOperation`](@ref).
+"""
 function Base.:^(x::AbstractTensor{0}, y::AbstractTensor{0})
     return PowerOperation(x, y)
 end
 
+
+"""
+    Base.:^(x::AbstractTensor{0}, y::Number)
+
+Raises the scalar-shaped tensor x to the power y. Returns a
+[`PowerOperation`](@ref).
+"""
 function Base.:^(x::AbstractTensor{0}, y::Number)
     return x^Tensor(y)
 end
 
+
+"""
+    Base.sqrt(x::AbstractTensor{0})
+
+Returns the square root of x as a [`PowerOperation`](@ref).
+"""
 function Base.sqrt(x::AbstractTensor{0})
     return PowerOperation(x, Tensor(1//2))
 end
 
+
+"""
+    DivisionOperation(A::AbstractTensor, y::AbstractTensor{0})
+
+Symbolises dividing tensor A by a scalar-shaped tensor y.
+"""
 struct DivisionOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, AbstractTensor{0}}
@@ -126,19 +211,39 @@ struct DivisionOperation{rank} <: Operation{rank}
     end
 end
 
+"""
+    Base.:/(A::AbstractTensor, y::AbstractTensor{0})
+
+Creates a DivisionOperation where A is divived by y. y must be scalar-shaped.
+"""
 function Base.:/(A::AbstractTensor, y::AbstractTensor{0})
     return DivisionOperation(A, y)
 end
 
+"""
+    Base.:/(A::AbstractTensor, y::Number)
+
+Creates a DivisionOperation where A is divived by y.
+"""
 function Base.:/(A::AbstractTensor, y::Number)
     return DivisionOperation(A, Tensor(y))
 end
 
+
+"""
+    Base.:/(y::Number, A::AbstractTensor{0})
+
+Creates a DivisionOperation where y is divided by A, where A must be a scalar.
+"""
 function Base.:/(y::Number, A::AbstractTensor{0})
     return DivisionOperation(Tensor(y), A)
 end
 
-"""A node symbolising indexing a tensor by its every dimension."""
+"""
+    IndexingOperation(x::AbstractTensor, indices::Indices)
+
+A node symbolising indexing a tensor by its every dimension.
+"""
 struct IndexingOperation{rank} <: Operation{rank}
     shape::Tuple{}
     children::Tuple{AbstractTensor, Indices}
@@ -148,18 +253,31 @@ struct IndexingOperation{rank} <: Operation{rank}
     end
 end
 
-"""A node symbolising component tensor."""
+"""
+    ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}},
+        children::Tuple{AbstractTensor, Indices},
+        freeindices::Tuple{Vararg{FreeIndex}})
+
+A node symbolising component tensor.
+"""
 struct ComponentTensorOperation{rank} <: Operation{rank}
     shape::Tuple{Vararg{AbstractVectorSpace}}
     children::Tuple{AbstractTensor, Indices}
     freeindices::Tuple{Vararg{FreeIndex}}
-    function ComponentTensorOperation(shape::Tuple{Vararg{AbstractVectorSpace}}, children::Tuple{AbstractTensor, Indices}, freeindices::Tuple{Vararg{FreeIndex}})
+    function ComponentTensorOperation(
+            shape::Tuple{Vararg{AbstractVectorSpace}},
+            children::Tuple{AbstractTensor, Indices},
+            freeindices::Tuple{Vararg{FreeIndex}})
         new{length(shape)}(shape, children, freeindices)
     end
 end
 
-"""Creates a component tensor of A over indices. Indices must be a
-subset of the free indices of A."""
+"""
+    componenttensor(A::AbstractTensor, indices::Vararg{Index})
+
+Creates a [`ComponentTensorOperation`](@ref) of A over indices. Indices must be a
+subset of the free indices of A.
+"""
 function componenttensor(A::AbstractTensor, indices::Vararg{Index})
     if length(indices) == 0
         return A
@@ -174,7 +292,10 @@ end
 
 idcounter = 0
 
-"""Creates an IndexingOperation of A indexed by ys. If every dimension of A is
+"""
+    Base.getindex(A::AbstractTensor, ys::Vararg{Index})
+
+Creates an [`IndexingOperation`](@ref) of A indexed by ys. If every dimension of A is
 not indexed, creates a ComponentTensorOperation over the unindexed dimensions."""
 function Base.getindex(A::AbstractTensor, ys::Vararg{Index})
     if length(ys) == 0
@@ -197,13 +318,16 @@ function Base.getindex(A::AbstractTensor, ys::Vararg{Index})
     return componenttensor(IndexingOperation(A, Indices(ys..., addedindices...)), addedindices...)
 end
 
-"""A convenience function that allows indexing a tensor by an integer. The
-function creates a corresponding FixedIndex object in the appropiate vector
-space.
+"""
+    Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
 
-Technically the function also does the same for a string, but this is not
-recommended, because the syntax makes no distinction between upper and
-lower indices.
+A convenience function that allows indexing a tensor by an integer. The
+function creates a corresponding [`FixedIndex`](@ref) object in the appropiate
+vector space.
+
+Technically the function can also create a [`FreeIndex`](@ref) from a string,
+but this is not recommended, because the syntax makes no distinction between
+upper and lower indices.
 """
 function Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     indexarray = []
@@ -213,6 +337,12 @@ function Base.getindex(A::AbstractTensor, ys::Vararg{Union{String, Int, Index}})
     return Base.getindex(A, indexarray...)
 end
 
+"""
+    Base.transpose(A::AbstractTensor)
+
+Reverses the shape of A. Does this by indexing A and then creating a
+[`ComponentTensorOperation`](@ref) with the indices reversed.
+"""
 function Base.transpose(A::AbstractTensor)
     indices = []
     for V in A.shape
@@ -223,6 +353,11 @@ function Base.transpose(A::AbstractTensor)
     return componenttensor(A[indices...], reverse(indices)...)
 end
 
+"""
+    trace(A::AbstractTensor{2})
+
+Returns the trace of a matrix of the shape (V, V'). 
+"""
 function trace(A::AbstractTensor{2})
     if A.shape[1] != dual(A.shape[2])
         throw(DomainError(A, "Cannot get a trace from a tensor whose shape is not of the form (V, V')"))
@@ -233,12 +368,12 @@ function trace(A::AbstractTensor{2})
 end
 
 function Base.show(io::IO, op::Operation, depth::Int)
-    println(io, ["\t" for i in 1:depth]..., typeof(op))
+    println(io, ["    " for i in 1:depth]..., typeof(op))
     for child in op.children
         if child isa Operation
             Base.show(io, child, depth + 1)
         else
-            println(io, ["\t" for i in 1:(depth+1)]..., child)
+            println(io, ["    " for i in 1:(depth+1)]..., child)
         end
     end
 end

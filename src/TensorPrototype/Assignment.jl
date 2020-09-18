@@ -70,6 +70,15 @@ function _assign(visited, x::Node, pair::Assignment, children::Vararg{Node})
     return updatechildren(x, children...)
 end
 
+"""
+    assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<:AbstractTensor{rank}}
+    assign(node::Node, pair::Pair{T, N}) where {T<:AbstractTensor{0}, N<:Number}
+    assign(node::Node, pair::Pair{T1, T2}) where {T1<:AbstractVectorSpace, T2<:AbstractVectorSpace}
+    assign(node::Node, pair::Pair{FreeIndex{T}, Union{Int, FixedIndex{T}}}) where {T<:AbstractVectorSpace}
+
+Create a new node from node, where every value first(pair) is replaced with
+last(pair). Can be used on tensors, indices and vector spaces.
+"""
 function assign(node::Node, pair::Pair{VariableTensor{rank}, T}) where {rank, T<:AbstractTensor{rank}}
     # Check that vector spaces match
     A, B = pair

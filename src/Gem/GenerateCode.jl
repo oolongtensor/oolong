@@ -1,3 +1,8 @@
+"""
+    Kernel(node::Node)
+
+Creates a PyOp2 kernel from a given node. This can be executed repeatedly.
+"""
 struct Kernel
     knl::PyObject
     shape::Tuple{Vararg{Int}}
@@ -11,6 +16,20 @@ struct Kernel
     end
 end
 
+"""
+    execute(expr::Union{Kernel, Node}, variables::Dict{String, T}) where T
+
+Execute the [`Kernel`](@ref) knl with the variable-assignments in variables.
+
+## Example
+```
+julia> A = VariableTensor("A", RnSpace(3))
+julia> knl = Kernel(A[1])
+julia> execute(knl, Dict("A"=>[1.0, 2.0, 3.0]))
+1-element Array{Float64,1}:
+ 1.0
+```
+"""
 function execute(knl::Kernel, variables::Dict{String, T}) where T
     _preprocessvariables(variables)
     return executeop2knl(knl.knl, knl.shape, [variables[var.name] for var in knl.variables])
@@ -21,6 +40,20 @@ function execute(node::Node, variables::Dict{String, T}) where T
     return execute(knl, variables)
 end
 
+"""
+    execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
+
+Execute the [`Kernel`](@ref) knl or [`Node`](@ref) with the
+variable-assignments in variables.
+
+## Example
+```
+julia> A = VariableTensor("A", RnSpace(3))
+julia> execute(A[1], "A"=>[1.0, 2.0, 3.0])
+1-element Array{Float64,1}:
+ 1.0
+```
+"""
 function execute(expr::Union{Node, Kernel}, variables::Vararg{Pair})
     return execute(expr, Dict{String, Any}(variables))
 end

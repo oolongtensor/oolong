@@ -1,4 +1,3 @@
-"""Differentiates A w.r.t y"""
 function _differentiate(A::Union{Tensor{T, 0}, ConstantTensor{T, 0}}, y::VariableTensor{0}, difffn) where T
     return A.value == y || A.value == [y] ? ConstantTensor(1) : ZeroTensor()
 end
@@ -53,7 +52,11 @@ function _differentiate(root::RootNode, y::VariableTensor{0}, diffn)
     return RootNode(diffn(root.children[1]))
 end
 
-"""Differentiates A w.r.t y"""
+"""
+    differentiate(A::AbstractTensor{0}, x::VariableTensor{0})
+
+Differentiates A w.r.t x.
+"""
 function differentiate(A::AbstractTensor{0}, x::VariableTensor{0})
     return traversal(A, x -> x, _differentiate, nothing, x, nothing, true)
 end
@@ -108,6 +111,11 @@ function _divergence(A::RootNode, vars::Tuple{Vararg{VariableTensor{0}}}, diverg
     return RootNode(divergencefn(A.children[1]))
 end
 
+"""
+    divergence(A::AbstractTensor{1}, vars::Vararg{VariableTensor{0}})
+
+Computes the divergence of a vector-shaped tensor A w.r.t vars.
+"""
 function divergence(A::AbstractTensor{1}, vars::Vararg{VariableTensor{0}})
     if dim(A.shape[1]) != length(vars)
         throw(DimensionMismatch(string(vars, " does not have enough variables to gradient ", A)))

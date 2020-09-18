@@ -154,11 +154,16 @@ function _togem(visited, root::RootNode, node)
     return RootNode(node)
 end
 
-function togem(node::Union{Node}, visited::Union{Dict, Nothing})
+function togem(node::Node, visited::Union{Dict, Nothing})
     return traversal(node, x-> x, _togem, nothing, nothing, visited)
 end
 
-function togem(node::Union{Node})
+"""
+    togem(node::Node)
+
+Translates node into GEM.
+"""
+function togem(node::Node)
     return togem(node, nothing)
 end
 
