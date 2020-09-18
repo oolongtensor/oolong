@@ -16,6 +16,7 @@ function __init__()
     catch LoadError
         println("Cannot import firedrake. Check that you are in the correct virtual environment.")
         return
+    end
     copy!(gem, tsfc.fem.gem)
     copy!(isinst, pybuiltin("isinstance"))
     py"""
