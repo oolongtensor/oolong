@@ -8,6 +8,7 @@ makedocs(sitename="Oolong",
     modules = [TensorDSL],
     pages = [
         "Home" => "index.md",
+        "Setup" => "setup.md",
         "Manual" => Any[
             "Abstract syntax tree" => "ast.md",
             "Vector Spaces" => "vectorspaces.md",
