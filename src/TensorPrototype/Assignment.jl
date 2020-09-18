@@ -1,4 +1,4 @@
-# Can't use replace(Array, Pair) because of #22
+# Can't use replace(Array, Pair) because of #5
 function replaceshape(A::Node, pair::Pair)
     dualspaces = [i == first(pair)' ? last(pair)' : i for i in A.shape]
     return tuple([i == first(pair) ? last(pair) : i for i in dualspaces]...)
